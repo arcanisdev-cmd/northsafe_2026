@@ -1,16 +1,20 @@
-function FeatureCard() {
-  return (
-    <div className="w-[311px] h-[150px] bg-white rounded-lg border border-gray-200 shadow-sm" />
-  );
-}
+import { Zap, MessageSquareText, MapPin, Users, Bell, Gift } from "lucide-react";
+import FeatureCard from "../components/FeatureCard";
+
+const features = [
+  { icon: Zap, iconColor: "#EC8305", title: "Real-Time Reporting", description: "Submit hazard reports instantly with photo evidence and GPS location. Your reports are processed immediately for faster response times." },
+  { icon: MessageSquareText, iconColor: "#79D7BE", title: "AI-Powered Classification", description: "Advanced AI automatically categorizes hazards, assesses severity, and routes reports to the appropriate response teams." },
+  { icon: MapPin, iconColor: "#EB3223", title: "GPS-Based Mapping", description: "Visualize all reported hazards on an interactive map. Track patterns and identify high-risk areas in your community." },
+  { icon: Users, iconColor: "#BB271A", title: "Community Validation", description: "Upvote legitimate reports and flag suspicious ones. Community engagement ensures report accuracy and authenticity." },
+  { icon: Bell, iconColor: "#FFFD54", title: "Real-Time Updates", description: "Receive notifications and track resolution progress through every stage, from verification to completion." },
+  { icon: Gift, iconColor: "#F29D38", title: "Rewards Program", description: "Earn reward points for verified reports that can be converted to prepaid load, encouraging active community participation." },
+];
 
 function Features() {
-  const cards = [1, 2, 3, 4, 5, 6];
-
   return (
-    <section className="px-6 md:px-12 lg:px-20 py-24">
-      <div className="grid md:grid-cols-2 gap-12">
-        {/* Left column */}
+    <section className="pl-[108px] pr-[80px] py-24">
+      <div className="grid" style={{ gridTemplateColumns: "361px 983px" }}>
+        {/* Left column — exactly 361px, matching Figma's gap to the cards */}
         <div>
           <p className="font-inter font-black text-base text-[#41AEAF] uppercase tracking-wide">
             Report. Track. Protect
@@ -29,10 +33,10 @@ function Features() {
           </p>
         </div>
 
-        {/* Right column — feature cards grid */}
-        <div className="grid grid-cols-3 gap-x-[25px] gap-y-[27px]">
-          {cards.map((card) => (
-            <FeatureCard key={card} />
+        {/* Right column — cards, exactly 983px */}
+        <div className="grid gap-x-[25px] gap-y-[27px]" style={{ gridTemplateColumns: "repeat(3, 311px)" }}>
+          {features.map((feature) => (
+            <FeatureCard key={feature.title} {...feature} />
           ))}
         </div>
       </div>
