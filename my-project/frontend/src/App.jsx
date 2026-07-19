@@ -2,6 +2,8 @@ import Navbar from "./layouts/NavBar";
 import Hero from "./sections/Hero";
 import Features from "./sections/Features";
 import WhatIsNorthsafe from "./sections/WhatIsNorthsafe";
+import HowItWorks from "./sections/HowItWorks";
+import HazardMapReports from "./sections/HazardMapReports";
 
 function App() {
   return (
@@ -11,6 +13,8 @@ function App() {
         <Hero />
         <Features />
         <WhatIsNorthsafe />
+        <HowItWorks />
+        <HazardMapReports />
       </div>
     </div>
   );
