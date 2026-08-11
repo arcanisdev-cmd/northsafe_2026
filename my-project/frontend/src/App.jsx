@@ -1,22 +1,15 @@
-import Navbar from "./layouts/NavBar";
-import Hero from "./sections/Hero";
-import Features from "./sections/Features";
-import WhatIsNorthsafe from "./sections/WhatIsNorthsafe";
-import HowItWorks from "./sections/HowItWorks";
-import HazardMapReports from "./sections/HazardMapReports";
+import { Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import SignupPage from "./pages/SignupPage";
+import DashboardPage from "./pages/DashboardPage";
 
 function App() {
   return (
-    <div className="overflow-x-hidden">
-      <div className="max-w-[1532px] mx-auto">
-        <Navbar />
-        <Hero />
-        <Features />
-        <WhatIsNorthsafe />
-        <HowItWorks />
-        <HazardMapReports />
-      </div>
-    </div>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+    </Routes>
   );
 }
 
