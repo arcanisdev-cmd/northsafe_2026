@@ -14,7 +14,50 @@ function HazardReportCard({
   downvotes = 12,
   comments = 12,
   imageSrc,
+  compact = false,
 }) {
+  if (compact) {
+    return (
+      <div className="flex gap-2 rounded-lg overflow-hidden" style={{ width: "251px", height: "102px" }}>
+        <div className="w-[70px] h-full bg-gray-100 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+          {imageSrc ? (
+            <img src={imageSrc} alt={title} className="w-full h-full object-cover" />
+          ) : (
+            <ImageIcon size={20} className="text-gray-300" />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <span className="font-inter text-[10px] text-gray-400">{timeAgo}</span>
+            <span className="font-inter font-bold text-[9px]" style={{ color: "#FF6F47" }}>
+              {status}
+            </span>
+          </div>
+          <p className="font-inter font-semibold text-xs text-black leading-tight mt-0.5 line-clamp-2">
+            {title}
+          </p>
+          <p className="font-inter text-[10px] text-gray-500 mt-1 line-clamp-1">
+            {description}
+          </p>
+          <div className="flex items-center gap-1 mt-1">
+            <span
+              className="px-2 py-0.5 rounded-full font-inter text-[9px] font-medium"
+              style={{ backgroundColor: "#FFE4D1", color: "#FF6F47" }}
+            >
+              {hazardType}
+            </span>
+            {verified && (
+              <span className="font-inter text-[9px] font-medium" style={{ color: "#22C55E" }}>
+                ✓ Verified
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="rounded-2xl bg-white p-6"
