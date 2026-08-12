@@ -15,10 +15,17 @@ function HazardReportCard({
   comments = 12,
   imageSrc,
   compact = false,
+  width = "718px",
+  buttonColor = "#46B5FF",
+  onClick,
 }) {
   if (compact) {
     return (
-      <div className="flex gap-2 rounded-lg overflow-hidden" style={{ width: "251px", height: "102px" }}>
+      <div
+        onClick={onClick}
+        className="flex gap-2 rounded-lg overflow-hidden cursor-pointer"
+        style={{ width: "251px", height: "102px" }}
+      >
         <div className="w-[70px] h-full bg-gray-100 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
           {imageSrc ? (
             <img src={imageSrc} alt={title} className="w-full h-full object-cover" />
@@ -60,8 +67,9 @@ function HazardReportCard({
 
   return (
     <div
-      className="rounded-2xl bg-white p-6"
-      style={{ width: "718px", border: "0.25px solid #979797" }}
+      onClick={onClick}
+      className="rounded-2xl bg-white p-6 cursor-pointer"
+      style={{ width, border: "0.25px solid #979797" }}
     >
       {/* Top row: avatar, name, time, status */}
       <div className="flex items-center justify-between">
@@ -148,7 +156,7 @@ function HazardReportCard({
             <button
               type="button"
               className="ml-auto px-5 py-1.5 rounded-full text-white text-sm font-bold"
-              style={{ backgroundColor: "#46B5FF" }}
+              style={{ backgroundColor: buttonColor }}
             >
               VIEW HAZARD MAP
             </button>

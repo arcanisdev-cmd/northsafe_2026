@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
 import HazardMapPage from "./pages/HazardMapPage";
+import MyReportsPage from "./pages/MyReportsPage";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/hazard-map" element={<HazardMapPage />} />
+      <Route path="/my-reports" element={<MyReportsPage />} />
     </Routes>
   );
 }
