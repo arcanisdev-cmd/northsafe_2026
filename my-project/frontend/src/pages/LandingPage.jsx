@@ -12,8 +12,8 @@ function LandingPage() {
       <div className="max-w-[1532px] mx-auto">
         <Navbar />
         <Hero />
-        <Features />
         <WhatIsNorthsafe />
+        <Features />
         <HowItWorks />
         <HazardMapReports />
         <Footer />
