@@ -1,93 +1,75 @@
-import { Image as ImageIcon } from "lucide-react";
-
-const legend = [
-  { label: "High", color: "#D30004" },
+const SEVERITY_ITEMS = [
+  { label: "High", color: "#FF3C40" },
   { label: "Medium", color: "#EC8305" },
   { label: "Low", color: "#FEEC41" },
   { label: "Resolved", color: "#39DA10" },
 ];
 
-const reports = [
-  { title: "Flooding near Camarin Road", location: "Camarin, Caloocan City", time: "Reported 12 mins ago", status: "HIGH", statusColor: "#D30004" },
-  { title: "Fallen Tree blocking the road", location: "Bagong Silang, Caloocan City", time: "Reported 35 mins ago", status: "LOW", statusColor: "#FEEC41" },
-  { title: "Damaged Street Light", location: "Congress, Caloocan City", time: "Reported 1 hour ago", status: "MEDIUM", statusColor: "#FF4C1A" },
-  { title: "Blocked Drainage", location: "Bagong Silang, Caloocan City", time: "Reported 2 hours ago", status: "RESOLVED", statusColor: "#39DA10" },
-];
-
-function HazardMapReports() {
+export default function HazardMapReports() {
   return (
-    <section className="pl-[107px] pr-[106px] pt-12 pb-24">
-      <div className="flex gap-[26px]">
-        {/* LEFT: Live Hazard Map */}
-        <div className="relative w-[659px] h-[430px] rounded-[20px] bg-[#042545]">
-          <h3 className="absolute left-9 top-5 font-inter font-semibold text-2xl text-white">
-            Live Hazard Map
-          </h3>
+    <div className="relative w-full bg-[#E0F8F2] overflow-hidden px-16 py-12">
+      {/* Faint blue accent, left side */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-[120px] -left-[180px] w-[620px] h-[620px] rounded-full blur-[10px]"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(120,170,255,0.35) 0%, rgba(120,170,255,0.12) 45%, rgba(120,170,255,0) 75%)",
+        }}
+      />
 
-          {/* Map placeholder — backend integration handled separately */}
-          <div className="absolute left-[41px] top-[65px] w-[577px] h-[304px] rounded-[10px] bg-gray-300 flex items-center justify-center text-gray-500 text-sm">
-            Just a placeholder. To be replaced with the actual map component once backend integration is complete.
-          </div>
-
-          {/* Legend */}
-          <div className="absolute left-[68px] top-[385px] w-[566px] flex justify-between">
-            {legend.map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="font-krub font-medium text-base text-white">
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
+      {/* Row: map + info column */}
+      <div className="relative flex items-start w-full max-w-[1319px] gap-20 mx-auto">
+        {/*
+          Map container: fixed 613 x 516, matches Figma exactly.
+          Empty placeholder for now — the real interactive map (click a
+          hazard pin -> populate the report card below) plugs in here
+          later without touching anything outside this box.
+        */}
+        <div className="w-[613px] h-[516px] flex-shrink-0 rounded-[13px] bg-white shadow-lg flex items-center justify-center">
+          <span className="text-sm text-gray-400">
+            Hazard map will be integrated here
+          </span>
         </div>
 
-        {/* RIGHT: Recent Community Reports */}
-        <div
-          className="relative w-[634px] h-[430px] rounded-[10px] p-[30px]"
-          style={{ background: "linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%)" }}
-        >
-          <div className="flex items-center justify-between">
-            <h3 className="font-inter font-semibold text-2xl text-[#444444]">
-              Recent Community Reports
-            </h3>
-            <a href="#" className="font-inter font-bold text-sm text-[#018A92]">
-              VIEW ALL REPORTS
-            </a>
-          </div>
+        {/* Info column: title, description, legend, then report card below it */}
+        <div className="flex flex-col flex-1 min-w-0 h-[516px] gap-5">
+          <h2 className="font-black text-[35px] leading-[44px] text-[#0C142E] m-0">
+            Live Hazard Map
+          </h2>
 
-          <div className="mt-[27px] flex flex-col gap-[10px]">
-            {reports.map((report) => (
-              <div
-                key={report.title}
-                className="relative w-[528px] h-[76px] bg-white rounded-[10px] shadow-md flex items-center px-4 gap-4"
-              >
-                <div className="w-[43px] h-[43px] bg-gray-200 rounded flex items-center justify-center shrink-0">
-                  <ImageIcon size={20} className="text-gray-400" />
-                </div>
+          <p className="max-w-[514px] font-normal text-[24px] leading-[30px] text-[#0C142E] text-justify m-0">
+            Navigate the entire North Caloocan map and View the severity
+            levels of each reported hazard near your area through the
+            NORTHSAFE Live Hazard Map.
+          </p>
 
-                <div className="flex-1" style={{ letterSpacing: "8%" }}>
-                  <p className="font-krub font-bold text-xs text-black">{report.title}</p>
-                  <p className="font-krub font-normal text-xs text-black">{report.location}</p>
-                  <p className="font-krub font-normal text-xs text-black">{report.time}</p>
-                </div>
-
+          <div className="flex items-center justify-between w-full max-w-[592px]">
+            {SEVERITY_ITEMS.map(({ label, color }) => (
+              <div key={label} className="flex items-center gap-3">
                 <span
-                  className="font-krub font-medium text-xs text-white px-3 py-1.5 rounded-[13px] shrink-0"
-                  style={{ backgroundColor: report.statusColor }}
-                >
-                  {report.status}
-                </span>
+                  className="inline-block w-5 h-5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-lg text-[#0C142E]">{label}</span>
               </div>
             ))}
+          </div>
+
+          {/* Report card: outer white frame (same treatment as the map box),
+              with the grey placeholder inset inside it — insets match the
+              37 / 29 / 33 / 29 (L/T/R/B) spacing from the Figma spec. */}
+          <div className="flex-1 min-h-0 rounded-[13px] bg-white shadow-lg pl-[37px] pr-[33px] pt-[29px] pb-[29px]">
+            <div className="w-full h-full rounded-[13px] bg-[#F2F2F2] shadow-md flex items-center justify-center text-center px-8">
+              <p className="text-sm text-gray-500 m-0">
+                Select any hazard from the map
+                <br />
+                to view hazard report details.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
-
-export default HazardMapReports;

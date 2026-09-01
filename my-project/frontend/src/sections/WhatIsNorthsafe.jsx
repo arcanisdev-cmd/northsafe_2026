@@ -18,7 +18,7 @@ function WhatIsNorthsafe() {
   }, []);
 
   return (
-    <section className="flex pl-[108px] pr-[80px] py-[80px] gap-[64px] bg-gradient-to-b from-gray-100 to-white">
+    <section className="flex pl-[108px] pr-[80px] py-[80px] gap-[64px] bg-gradient-to-b from-[#C9C3E8] via-[#EDEBF7] to-white">
       {/* Left: carousel image + centered pill indicators */}
       <div className="shrink-0 flex flex-col items-center">
         <div
@@ -59,11 +59,9 @@ function WhatIsNorthsafe() {
         className="shrink-0"
         style={{ width: "640px", height: "436px" }}
       >
-        <h2 className="font-roboto text-[64px] leading-[58px] text-black text-left">
-          <h2 className="font-roboto text-left">
+        <h2 className="font-roboto text-left">
           <span className="block text-5xl font-semibold text-black">What is</span>
           <span className="block text-7xl font-bold text-[#08457E]">NORTHSAFE?</span>
-</h2>
         </h2>
 
         <p

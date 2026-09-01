@@ -1,9 +1,12 @@
 import Navbar from "../layouts/NavBar";
 import Hero from "../sections/Hero";
 import Features from "../sections/Features";
+import CommunityCTA from "../sections/CommunityCTA";
 import WhatIsNorthsafe from "../sections/WhatIsNorthsafe";
 import HowItWorks from "../sections/HowItWorks";
 import HazardMapReports from "../sections/HazardMapReports";
+import EmergencyHotlines from "../sections/EmergencyHotlines";
+import FAQ from "../sections/FAQ";
 import Footer from "../layouts/Footer";
 
 function LandingPage() {
@@ -14,8 +17,11 @@ function LandingPage() {
         <Hero />
         <WhatIsNorthsafe />
         <Features />
+        <CommunityCTA/>
         <HowItWorks />
         <HazardMapReports />
+        <EmergencyHotlines />
+        <FAQ />
         <Footer />
       </div>
     </div>
