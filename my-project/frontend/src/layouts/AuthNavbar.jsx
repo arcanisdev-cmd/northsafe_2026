@@ -17,9 +17,13 @@ function AuthNavbar({ userName = "Juan Dela Cruz", points = 140 }) {
   const notificationsButtonRef = useRef(null);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[108px]">
+    <nav className="sticky top-0 z-50 bg-white h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
       <Link to="/dashboard">
-        <img src={logo} alt="NorthSafe logo" className="h-[76px] w-[76px] object-contain" />
+        {/* Was h-[76px] w-[76px] — a square box was squeezing this wide
+            logo (icon + wordmark) down to fit its width, same issue found
+            on LoginNavbar. h-[64px] w-auto matches NavBar's logo sizing
+            and lets it render at full readable size. */}
+        <img src={logo} alt="NorthSafe logo" className="h-[64px] w-auto" />
       </Link>
 
       <div className="hidden md:flex items-center gap-8">

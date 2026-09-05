@@ -1,12 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-// Placeholder list — replace with the official North Caloocan barangay list
-const BARANGAYS = [
-  "Bagumbong", "Camarin", "Caybiga", "Deparo", "Llano",
-  "Nagkaisang Nayon", "Pangarap Village", "Sangandaan",
-  "Bagong Silang", "Congress",
-];
+// North Caloocan's numbered barangay range for this district.
+const BARANGAYS = Array.from({ length: 188 - 165 + 1 }, (_, i) => `Barangay ${165 + i}`);
 
 function BarangaySelect({ value, onChange, onBlur, error, touched }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +26,7 @@ function BarangaySelect({ value, onChange, onBlur, error, touched }) {
 
   return (
     <div ref={wrapperRef} className="relative">
-      <label htmlFor="barangay" className="font-inter font-medium text-sm text-[#1C1C1C]">
+      <label htmlFor="barangay" className="font-inter text-[13px] font-medium text-[#1C1C1C]">
         Barangay <span className="text-[#D30004]">*</span>
       </label>
 
@@ -40,7 +36,7 @@ function BarangaySelect({ value, onChange, onBlur, error, touched }) {
         onClick={() => setIsOpen(!isOpen)}
         aria-invalid={touched && !!error}
         aria-describedby={error ? "barangay-error" : undefined}
-        className={`w-full h-11 mt-1 px-4 border rounded-lg text-sm text-left flex items-center justify-between ${
+        className={`w-full h-11 mt-1 px-4 border rounded-[5px] text-[15px] text-left flex items-center justify-between ${
           touched && error ? "border-[#D30004]" : "border-gray-300"
         }`}
       >
@@ -58,10 +54,10 @@ function BarangaySelect({ value, onChange, onBlur, error, touched }) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search barangay..."
-            className="w-full px-4 py-2 text-sm border-b border-gray-100 focus:outline-none"
+            className="w-full px-4 py-2 text-[15px] border-b border-gray-100 focus:outline-none"
           />
           {filtered.length === 0 && (
-            <p className="px-4 py-2 text-sm text-gray-400">No matches found</p>
+            <p className="px-4 py-2 text-[15px] text-gray-400">No matches found</p>
           )}
           {filtered.map((b) => (
             <button
@@ -73,7 +69,7 @@ function BarangaySelect({ value, onChange, onBlur, error, touched }) {
                 setSearch("");
                 onBlur();
               }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+              className="w-full text-left px-4 py-2 text-[15px] hover:bg-gray-50"
             >
               {b}
             </button>
@@ -82,9 +78,9 @@ function BarangaySelect({ value, onChange, onBlur, error, touched }) {
       )}
 
       {touched && error && (
-        <p id="barangay-error" className="text-xs text-[#D30004] mt-1 min-h-[16px]">
-  {touched && error ? error : ""}
-  </p>
+        <p id="barangay-error" className="font-inter text-[11px] text-[#D30004] mt-1 min-h-[16px]">
+          {error}
+        </p>
       )}
     </div>
   );
