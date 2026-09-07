@@ -1,7 +1,3 @@
-// Placeholder data for the dashboard hero. Structured so the backend dev can
-// swap these for real API responses without touching component code — the
-// shape here is what DashboardHero.jsx expects as props/imports.
-
 export const typhoonAlert = {
   title: "Typhoon Warning",
   date: "AUGUST 29, 2026",
@@ -24,10 +20,109 @@ export const hotlines = [
   },
 ];
 
-// Placeholder for the logged-in user shown in AuthNavbar. Shaped to match
-// whatever the real auth/session endpoint will eventually return.
+// Placeholder for the logged-in user shown in AuthNavbar and RewardsCard.
+// Shaped to match whatever the real auth/session endpoint will eventually
+// return. RewardsCard reads points from here directly (not a separate
+// duplicate field) so the navbar and rewards panel never drift out of sync.
 export const currentUser = {
   name: "Juan Dela Cruz",
   points: 140,
+  prepaidLoad: 10,
   avatarUrl: null,
 };
+
+// NOTE for backend integration: unlike the other mock data in this file,
+// this one stands in for a live third-party weather API response (e.g.
+// OpenWeatherMap), not your own backend endpoint — flagging that this is a
+// different kind of integration point than currentUser/hazardReports/etc.
+export const weatherData = {
+  condition: "Partly Cloudy",
+  temp: 30,
+  date: "Monday, July 13, 2026",
+  location: "Brgy. 167, Caloocan City",
+};
+
+// Placeholder hazard reports for the feed. alertLevel is "red" | "blue" |
+// "white", matching the three AlertPill variants in HazardReportCard.
+export const hazardReports = [
+  {
+    id: 1,
+    reporterName: "Jam Dagonio",
+    timeAgo: "3 hrs ago",
+    alertLevel: "red",
+    title: "Large Pothole on Main Road Causing Traffic Delays",
+    description: "Dangerous pothole discovered near the road intersection.",
+    address: "Beside Barangay 167 Llano road in kamagong street",
+    dateTime: "06/15/2026 11:26PM",
+    hazardType: "Flood",
+    verified: true,
+    upvotes: 12,
+    downvotes: 12,
+    comments: 12,
+    imageSrc: null,
+  },
+  {
+    id: 2,
+    reporterName: "Jam Dagonio",
+    timeAgo: "3 hrs ago",
+    alertLevel: "blue",
+    title: "Large Pothole on Main Road Causing Traffic Delays",
+    description: "Dangerous pothole discovered near the road intersection.",
+    address: "Beside Barangay 167 Llano road in kamagong street",
+    dateTime: "06/15/2026 11:26PM",
+    hazardType: "Flood",
+    verified: true,
+    upvotes: 12,
+    downvotes: 12,
+    comments: 12,
+    imageSrc: null,
+  },
+  {
+    id: 3,
+    reporterName: "Jam Dagonio",
+    timeAgo: "3 hrs ago",
+    alertLevel: "white",
+    title: "Large Pothole on Main Road Causing Traffic Delays",
+    description: "Dangerous pothole discovered near the road intersection.",
+    address: "Beside Barangay 167 Llano road in kamagong street",
+    dateTime: "06/15/2026 11:26PM",
+    hazardType: "Flood",
+    verified: true,
+    upvotes: 12,
+    downvotes: 12,
+    comments: 12,
+    imageSrc: null,
+  },
+  {
+    id: 4,
+    reporterName: "Jam Dagonio",
+    timeAgo: "3 hrs ago",
+    alertLevel: "red",
+    title: "Large Pothole on Main Road Causing Traffic Delays",
+    description: "Dangerous pothole discovered near the road intersection.",
+    address: "Beside Barangay 167 Llano road in kamagong street",
+    dateTime: "06/15/2026 11:26PM",
+    hazardType: "Flood",
+    verified: true,
+    upvotes: 12,
+    downvotes: 12,
+    comments: 12,
+    imageSrc: null,
+  },
+  {
+    id: 5,
+    reporterName: "Jam Dagonio",
+    timeAgo: "3 hrs ago",
+    alertLevel: "red",
+    title: "Large Pothole on Main Road Causing Traffic Delays",
+    description: "Dangerous pothole discovered near the road intersection.",
+    address: "Beside Barangay 167 Llano road in kamagong street",
+    dateTime: "06/15/2026 11:26PM",
+    hazardType: "Flood",
+    verified: true,
+    upvotes: 12,
+    downvotes: 12,
+    comments: 12,
+    imageSrc: null,
+  },
+];

@@ -1,32 +1,46 @@
-import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { SlidersHorizontal, Search } from "lucide-react";
+import { currentUser } from "../components/data/MockDashboardData";
 
-const filters = ["Hazard Category", "Hazard Status", "Baranggay"];
+function SearchFilterBar() {
+  const firstName = currentUser.name.split(" ")[0];
 
-function SearchFilterBar({ userFirstName = "Juan" }) {
   return (
+    // Whole band: solid teal #479F9C (was an incorrect lavender before),
+    // fixed height 69px, 100px side padding matching the hero's convention.
+    // The greeting block and search+sort sit side-by-side in one row —
+    // stacking them as two separate rows wouldn't fit in 69px total height.
     <section
-      className="flex flex-col justify-center"
-      style={{ backgroundColor: "#BAC6E8", height: "200px", paddingLeft: "157px", paddingRight: "157px" }}
+      className="flex items-center justify-between"
+      style={{ backgroundColor: "#479F9C", height: "69px", paddingLeft: "100px", paddingRight: "100px" }}
     >
-      {/* Greeting + subtext, one line */}
-      <p className="font-inter text-lg">
-        <span className="font-bold" style={{ color: "#042545" }}>
-          Good Morning,
+      {/* Greeting — two tightly-stacked lines, both white per spec (the
+          previous dark navy colors would've been invisible on this teal
+          background). Pulling first name from the shared mock user data
+          instead of a hardcoded default prop. */}
+      {/* Single line — greeting and subtext run together with just a
+          space between them, not stacked as two separate lines. */}
+      <p className="whitespace-nowrap">
+        <span
+          className="text-white"
+          style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "20px", lineHeight: "20px" }}
+        >
+          Good morning, {firstName}!
         </span>{" "}
-        <span className="font-bold" style={{ color: "#1B3959" }}>
-          {userFirstName}!
-        </span>{" "}
-        <span className="text-base" style={{ color: "#4E4E4E" }}>
+        <span
+          className="text-white ml-2"
+          style={{ fontFamily: "Inter, sans-serif", fontWeight: 500, fontSize: "16px", lineHeight: "20px" }}
+        >
           Stay updated with hazards happening around your community.
         </span>
       </p>
 
-      {/* Search + filters row */}
-      <div className="flex items-center gap-4 mt-6">
-        {/* Search bar */}
+      {/* Search bar (511x40, radius 20) + sort button, 15px gap between
+          them (526 - 511 = 15, per spec). Animation on the search bar is
+          intentionally on hold per your note. */}
+      <div className="flex items-center gap-[15px] shrink-0">
         <div
-          className="flex items-center gap-3 bg-white rounded-full px-5 flex-1"
-          style={{ height: "40.29px", maxWidth: "718px", border: "1px solid #A3A3A3" }}
+          className="flex items-center gap-3 bg-white px-5"
+          style={{ width: "511px", height: "40px", borderRadius: "20px" }}
         >
           <Search size={18} style={{ color: "#626262" }} className="shrink-0" />
           <input
@@ -37,26 +51,16 @@ function SearchFilterBar({ userFirstName = "Juan" }) {
           />
         </div>
 
-        {/* Filter icon + dropdowns, hugged group, no wrap */}
-        <div className="flex items-center shrink-0" style={{ gap: "13px" }}>
-          <button type="button" className="p-2 shrink-0" aria-label="More filters">
-            <SlidersHorizontal size={20} style={{ color: "#626262" }} />
-          </button>
-
-          {filters.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              className="flex items-center gap-2 bg-white rounded-full px-5 whitespace-nowrap shrink-0"
-              style={{ height: "35px", border: "1px solid #A3A3A3" }}
-            >
-              <span className="font-inter text-sm" style={{ color: "#042545" }}>
-                {filter}
-              </span>
-              <ChevronDown size={14} style={{ color: "#626262" }} className="shrink-0" />
-            </button>
-          ))}
-        </div>
+        {/* 30x30 per spec — SlidersHorizontal sized to sit comfortably
+            inside that box. */}
+        <button
+          type="button"
+          className="flex items-center justify-center bg-white shrink-0"
+          style={{ width: "30px", height: "30px", borderRadius: "8px" }}
+          aria-label="More filters"
+        >
+          <SlidersHorizontal size={18} style={{ color: "#292828" }} />
+        </button>
       </div>
     </section>
   );

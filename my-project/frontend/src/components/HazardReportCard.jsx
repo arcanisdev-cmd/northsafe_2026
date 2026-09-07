@@ -1,9 +1,50 @@
 import { User, ImageIcon, MapPin, ArrowUp, ArrowDown, MessageCircle, CheckCircle2 } from "lucide-react";
 
+// Fixed width per variant, matching the figma spec exactly — all three
+// share the same right edge, and the text is simply centered inside
+// (not a fixed padding value): e.g. RED (88-66)/2 = 11, matching the
+// spec's x=11 exactly. Same logic confirmed for BLUE and WHITE below.
+const ALERT_PILL_STYLES = {
+  red: { width: "88px", backgroundColor: "#FFC4C4", color: "#BA1A1A", label: "RED ALERT" },
+  blue: { width: "88px", backgroundColor: "#D4D3FF", color: "#1E1391", label: "BLUE ALERT" },
+  // "white" is the alert-level name, not a literal white fill — a truly
+  // white pill would be invisible on the white card, so this uses a
+  // neutral gray fill with white text per spec.
+  white: { width: "100px", backgroundColor: "#A9A9A9", color: "#FFFFFF", label: "WHITE ALERT" },
+};
+
+function AlertPill({ level }) {
+  const style = ALERT_PILL_STYLES[level];
+  if (!style) return null;
+
+  return (
+    <span
+      className="flex items-center justify-center rounded-full shrink-0"
+      style={{
+        width: style.width,
+        height: "25px",
+        backgroundColor: style.backgroundColor,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "Inter, sans-serif",
+          fontWeight: 600,
+          fontSize: "12px",
+          lineHeight: "20px",
+          color: style.color,
+        }}
+      >
+        {style.label}
+      </span>
+    </span>
+  );
+}
+
 function HazardReportCard({
   reporterName = "Jam Dagonio",
   timeAgo = "3 hrs ago",
-  status = "CRITICAL",
+  alertLevel = "red",
   hazardType = "Flood",
   title = "Large Pothole on Main Road Causing Traffic Delays",
   description = "Dangerous pothole discovered near the road intersection.",
@@ -37,9 +78,7 @@ function HazardReportCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <span className="font-inter text-[10px] text-gray-400">{timeAgo}</span>
-            <span className="font-inter font-bold text-[9px]" style={{ color: "#FF6F47" }}>
-              {status}
-            </span>
+            <AlertPill level={alertLevel} />
           </div>
           <p className="font-inter font-semibold text-xs text-black leading-tight mt-0.5 line-clamp-2">
             {title}
@@ -71,7 +110,8 @@ function HazardReportCard({
       className="rounded-2xl bg-white p-6 cursor-pointer"
       style={{ width, border: "0.25px solid #979797" }}
     >
-      {/* Top row: avatar, name, time, status */}
+      {/* Top row: avatar, name, time, and the new red/blue/white alert
+          pill — replaces the old dot+text "CRITICAL" status entirely. */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-[30px] h-[30px] rounded-full bg-gray-100 flex items-center justify-center">
@@ -83,12 +123,7 @@ function HazardReportCard({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#FF6F47" }} />
-          <span className="font-inter font-bold text-xs" style={{ color: "#767676" }}>
-            {status}
-          </span>
-        </div>
+        <AlertPill level={alertLevel} />
       </div>
 
       {/* Image + content */}
