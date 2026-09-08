@@ -18,7 +18,7 @@ function AuthNavbar() {
   const notificationsButtonRef = useRef(null);
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-100">
+    <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
       <div className="h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
         <Link to="/dashboard">
           <img src={logo} alt="NorthSafe logo" className="h-[64px] w-auto" />
@@ -95,4 +95,4 @@ function AuthNavbar() {
   );
 }
 
-export default AuthNavbar;
+export default AuthNavbar;  

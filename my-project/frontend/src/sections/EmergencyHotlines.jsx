@@ -11,7 +11,10 @@ const phoneNumbers = [
 
 function EmergencyHotlines() {
   return (
-    <section className="flex px-[100px] pt-[100px] pb-[50px] gap-[106px] items-stretch">
+    <section
+      id="hotlines"
+      className="flex px-[100px] py-[100px] gap-[106px] items-stretch scroll-mt-[100px]"
+    >
       {/* Left Side */}
       <div style={{ width: "594px" }} className="shrink-0">
         <div className="flex flex-col items-center">
