@@ -11,7 +11,7 @@ function HazardFeed() {
     // you flagged — the hero and greeting bar both use 100px side padding,
     // so 157px here made this section's content start further right than
     // everything above it.
-    <section className="px-[100px] py-10">
+    <section style={{ backgroundColor: "#E8F4FF" }} className="px-[100px] py-10">
       <div className="flex gap-8 items-start">
         {/* Main column — report feed, now driven by real mock data instead
             of looping over placeholder ids with no props passed in. */}

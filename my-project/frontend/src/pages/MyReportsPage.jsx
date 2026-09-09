@@ -62,7 +62,7 @@ function MyReportsPage() {
       <div className="max-w-[1532px] mx-auto">
         <AuthNavbar />
 
-        <div style={{ backgroundColor: "#D4D3FF" }} className="px-[108px] py-8">
+        <div style={{ backgroundColor: "#E8F4FF" }} className="px-[108px] py-8">
           {/* Stat cards */}
           <div className="flex gap-5">
             {statCards.map((s) => (
@@ -179,6 +179,7 @@ function MyReportsPage() {
                     upvotes={report.upvotes}
                     downvotes={report.downvotes}
                     comments={report.comments}
+                    commentsList={report.commentsList}
                     imageSrc={report.imageSrc}
                     width="100%"
                     buttonColor="#081435"
