@@ -23,6 +23,7 @@ html, body {
   scroll-behavior: smooth;
 }
 
+
 @keyframes modal-backdrop-in {
   from { opacity: 0; }
   to { opacity: 1; }

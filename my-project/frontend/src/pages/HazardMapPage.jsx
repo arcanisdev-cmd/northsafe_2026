@@ -24,7 +24,7 @@ function HazardMapPage() {
   const filteredReports = useMemo(() => filterHazardReports(hazardReports, filters), [filters]);
 
   return (
-    <div className="overflow-x-hidden">
+    <div>
       <div className="max-w-[1532px] mx-auto">
         <AuthNavbar />
 

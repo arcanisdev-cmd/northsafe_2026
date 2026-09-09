@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Star, User } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationsDropdown from "../components/NotificationsDropdown";
-import { currentUser } from "../components/data/MockDashboardData";
+import { currentUser, notifications as allNotifications } from "../components/data/MockDashboardData";
+import { getMyNotifications, getUnreadCount } from "../utils/notificationSelectors";
 
 const navLinks = [
   { label: "Home", path: "/dashboard" },
@@ -16,6 +17,22 @@ function AuthNavbar() {
   const location = useLocation();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsButtonRef = useRef(null);
+
+  // Owned here (not inside the dropdown) so the unread badge below and the
+  // dropdown's own counts/list always agree — same pattern as
+  // currentUser.points being read from one place everywhere it's shown.
+  const [notifications, setNotifications] = useState(() =>
+    getMyNotifications(allNotifications, currentUser.id)
+  );
+  const unreadCount = useMemo(() => getUnreadCount(notifications), [notifications]);
+
+  const handleMarkRead = (id) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  };
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
@@ -36,11 +53,19 @@ function AuthNavbar() {
                       ref={notificationsButtonRef}
                       type="button"
                       onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                      className={`font-roboto font-bold text-base uppercase transition-colors ${
+                      className={`relative flex items-center gap-1.5 font-roboto font-bold text-base uppercase transition-colors ${
                         isNotificationsOpen ? "text-[#0BA6DF]" : "text-[#081435] hover:text-[#0BA6DF]"
                       }`}
                     >
                       {link.label}
+                      {unreadCount > 0 && (
+                        <span
+                          className="flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-white text-[10px] font-bold"
+                          style={{ backgroundColor: "#D30004" }}
+                        >
+                          {unreadCount}
+                        </span>
+                      )}
                     </button>
                   </li>
                 );
@@ -90,9 +115,12 @@ function AuthNavbar() {
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         anchorRef={notificationsButtonRef}
+        notifications={notifications}
+        onMarkRead={handleMarkRead}
+        onMarkAllRead={handleMarkAllRead}
       />
     </nav>
   );
 }
 
-export default AuthNavbar;  
+export default AuthNavbar;

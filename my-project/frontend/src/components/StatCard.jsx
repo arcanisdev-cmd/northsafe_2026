@@ -1,18 +1,20 @@
 function StatCard({ icon: Icon, label, value, color }) {
   return (
     <div
-      className="flex items-center gap-3 bg-white rounded-2xl px-5"
-      style={{ width: "314px", height: "78px", border: "0.25px solid #979797" }}
+      className="flex items-center gap-4 bg-white rounded-2xl px-6 py-5 flex-1"
+      style={{ boxShadow: "0px 2px 10px rgba(0,0,0,0.06)" }}
     >
       <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+        className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0"
         style={{ backgroundColor: color }}
       >
-        <Icon size={22} className="text-white" />
+        <Icon size={20} className="text-white" />
       </div>
       <div>
-        <p className="font-inter text-sm" style={{ color: "#434343" }}>{label}</p>
-        <p className="font-inter font-bold text-2xl" style={{ color }}>{value}</p>
+        <p className="text-[13px] text-gray-500 font-medium">{label}</p>
+        <p className="text-[22px] font-bold leading-tight" style={{ color }}>
+          {value}
+        </p>
       </div>
     </div>
   );
