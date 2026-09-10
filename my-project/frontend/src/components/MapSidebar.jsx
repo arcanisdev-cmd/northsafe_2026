@@ -17,7 +17,6 @@ import {
   hazardStatuses,
   barangayOptions,
   alertLevelOptions,
-  hazardReports,
 } from "./data/MockDashboardData";
 import { countByField } from "../utils/hazardFilters";
 import MiniCalendar from "./MiniCalendar";
@@ -154,12 +153,12 @@ function AlertLevelRow({ option, checked, onChange }) {
  *   filters            filter state, see utils/hazardFilters.getDefaultMapFilters
  *   onChangeFilters     (updaterFn) => void — same pattern as React setState
  */
-function MapSidebar({ collapsed, onToggleCollapsed, filters, onChangeFilters }) {
+function MapSidebar({ collapsed, onToggleCollapsed, filters, onChangeFilters, reports = [] }) {
   const [openSection, setOpenSection] = useState(null);
   const [search, setSearch] = useState("");
 
-  const hazardTypeCounts = useMemo(() => countByField(hazardReports, "hazardType"), []);
-  const hazardStatusCounts = useMemo(() => countByField(hazardReports, "status"), []);
+  const hazardTypeCounts = useMemo(() => countByField(reports, "hazardType"), [reports]);
+  const hazardStatusCounts = useMemo(() => countByField(reports, "status"), [reports]);
 
   const handleSectionToggle = (section) => {
     setOpenSection((prev) => (prev === section ? null : section));

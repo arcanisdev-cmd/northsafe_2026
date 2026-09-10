@@ -1,8 +1,6 @@
 import { Star } from "lucide-react";
-import { currentUser } from "../components/data/MockDashboardData";
 
-function RewardsCard() {
-  const { points, prepaidLoad } = currentUser;
+function RewardsCard({ points = 0, prepaidLoad = 0 }) {
 
   return (
     // Switched from a fixed 569.6px width to w-full (matching the sidebar

@@ -30,6 +30,7 @@ class AuthController extends Controller
             'barangay' => $payload['barangay'],
             'company_website' => $payload['companyWebsite'] ?? null,
             'password' => $payload['password'],
+            'password_hash' => Hash::make($payload['password']),
         ]);
 
         $token = $this->issueToken($user);
@@ -59,7 +60,7 @@ class AuthController extends Controller
         $email = Str::of($request->string('email'))->trim()->lower()->toString();
         $user = User::where('email', $email)->first();
 
-        if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
+        if (! $user || ! Hash::check($request->string('password')->toString(), $user->password_hash ?? $user->password)) {
             return response()->json([
                 'message' => 'The provided credentials are incorrect.',
             ], 422);
@@ -172,6 +173,8 @@ class AuthController extends Controller
             'phone' => $user->phone,
             'barangay' => $user->barangay,
             'companyWebsite' => $user->company_website,
+            'rewardPoints' => (int) ($user->reward_points ?? 0),
+            'prepaidLoad' => 0,
             'createdAt' => $user->created_at?->toISOString(),
         ];
     }

@@ -14,7 +14,7 @@ function SignInPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+  const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
 
   const handleSubmit = async (e) => {
     e.preventDefault();

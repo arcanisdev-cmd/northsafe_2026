@@ -2,7 +2,28 @@ import { AlertTriangle, MapPin, Compass, Camera, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import ndrrmcBg from "../assets/ndrrmc.png";
 import caloocanLogo from "../assets/caloocan-logo.png";
-import { typhoonAlert, hotlines } from "../components/data/MockDashboardData";
+
+const DEFAULT_TYPHOON_ALERT = {
+  title: "Typhoon Warning",
+  date: "AUGUST 29, 2026",
+  time: "5:24 PM",
+  message:
+    "Red rainfall warning sa Zambales, Tarlac, Pampanga, Bataan at Bulacan. Asahan ang matinding pag-ulan, pagbaha at pag guho ng lupa. Maaaring lumikas sa pinakamalapit na evacuation centers sa inyong mga barangay at makipag-ugnayan sa LGU's para sa agarang pag-responde.",
+  primaryCta: { label: "View Evacuation Centers", to: "/evacuation-centers" },
+  secondaryCta: { label: "More Info", to: "/alerts/typhoon-warning" },
+};
+
+const DEFAULT_HOTLINES = [
+  { label: "National Emergency Hotline", number: "911", color: "#D30004" },
+  { label: "Bureau of Fire Protection (BFP)", number: "(02) 8426-0219", color: "#F29D38" },
+  { label: "Philippine National Police (PNP)", number: "0998-598-7860", color: "#0BA6DF" },
+  { label: "Caloocan City Hall", number: "0917-766-2520", color: "#22A559" },
+  {
+    label: "Caloocan City Disaster Risk Reduction Management",
+    number: "0905-547-7817",
+    color: "#FFD60A",
+  },
+];
 
 function TyphoonWarningCard({ alert }) {
   return (
@@ -197,7 +218,7 @@ function HotlinesCard({ items }) {
   );
 }
 
-function DashboardHero() {
+function DashboardHero({ typhoonAlert = DEFAULT_TYPHOON_ALERT, hotlines = DEFAULT_HOTLINES }) {
   return (
     // Hero frame: w1532 h657 per spec, with the app's already-established
     // px-[100px] side padding (matches the navbars, so no new convention

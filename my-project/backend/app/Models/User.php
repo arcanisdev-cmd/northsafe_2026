@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'first_name', 'middle_name', 'last_name', 'email', 'phone', 'barangay', 'company_website', 'password', 'api_token_hash'])]
-#[Hidden(['password', 'remember_token', 'api_token_hash'])]
+#[Fillable(['name', 'first_name', 'middle_name', 'last_name', 'email', 'phone', 'barangay', 'company_website', 'password', 'password_hash', 'role', 'reward_points', 'status', 'api_token_hash'])]
+#[Hidden(['password', 'password_hash', 'remember_token', 'api_token_hash'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -28,5 +28,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(HazardReport::class);
     }
 }

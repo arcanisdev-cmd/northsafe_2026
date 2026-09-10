@@ -1,8 +1,7 @@
 import { SlidersHorizontal, Search } from "lucide-react";
-import { currentUser } from "../components/data/MockDashboardData";
 
-function SearchFilterBar() {
-  const firstName = currentUser.name.split(" ")[0];
+function SearchFilterBar({ userName = "NorthSafe User" }) {
+  const firstName = userName.split(" ")[0];
 
   return (
     // Whole band: solid teal #479F9C (was an incorrect lavender before),

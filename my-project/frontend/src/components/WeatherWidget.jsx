@@ -1,8 +1,14 @@
 import { Cloud, MapPin } from "lucide-react";
-import { weatherData } from "../components/data/MockDashboardData";
 
-function WeatherWidget() {
-  const { condition, temp, date, location } = weatherData;
+const FALLBACK_WEATHER = {
+  condition: "Partly Cloudy",
+  temp: 30,
+  date: "Monday, July 13, 2026",
+  location: "Brgy. 167, Caloocan City",
+};
+
+function WeatherWidget({ weather = FALLBACK_WEATHER }) {
+  const { condition, temp, date, location } = weather;
 
   return (
     // Fixed 570.04 wide, hugs to 126.7 tall. Solid navy #17436A per spec

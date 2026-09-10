@@ -11,7 +11,39 @@ import ReportSuccessModal from "../components/ReportSuccessModal";
 
 const barangayOptions = Array.from({ length: 24 }, (_, i) => `Barangay ${165 + i}`);
 
+async function reverseGeocodeLocation(latitude, longitude) {
+  const url = new URL("https://nominatim.openstreetmap.org/reverse");
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("lat", String(latitude));
+  url.searchParams.set("lon", String(longitude));
+  url.searchParams.set("zoom", "18");
+  url.searchParams.set("addressdetails", "1");
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Reverse geocoding failed.");
+  }
+
+  const data = await response.json();
+  const address = data?.address ?? {};
+  const shortAddress = [
+    address.road,
+    address.neighbourhood ?? address.suburb ?? address.village,
+    address.city ?? address.town ?? address.municipality,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return shortAddress || data?.display_name || "Current location, Caloocan City";
+}
+
 function ReportHazardPage() {
+  const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
   const [photoFile, setPhotoFile] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -20,7 +52,17 @@ function ReportHazardPage() {
   const [barangay, setBarangay] = useState("");
   const [barangayTouched, setBarangayTouched] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [locationError, setLocationError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const clearStoredAuth = () => {
+    localStorage.removeItem("northsafe_token");
+    localStorage.removeItem("northsafe_user");
+    sessionStorage.removeItem("northsafe_token");
+    sessionStorage.removeItem("northsafe_user");
+  };
 
   const step1Complete = photoFile !== null;
   const step2Complete = title.trim() !== "" && description.trim() !== "" && category !== null;
@@ -34,22 +76,114 @@ function ReportHazardPage() {
 
   const canSubmit = step1Complete && step2Complete && step3Complete;
 
-  const handleSubmit = () => {
-    // Backend integration point: send as multipart/form-data since it includes a file
-    const formData = new FormData();
-    formData.append("photo", photoFile);
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("category", category);
-    formData.append("address", address);
-    formData.append("barangay", barangay);
-    formData.append("location", JSON.stringify(selectedLocation));
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Your browser does not support location access.");
+      return;
+    }
 
-    // Example for whoever wires this up:
-    // await fetch("/api/reports", { method: "POST", body: formData });
-    console.log("Submitting report:", Object.fromEntries(formData));
+    setLocationError("");
 
-    setShowSuccessModal(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        let resolvedAddress = "Current location, Caloocan City";
+
+        try {
+          resolvedAddress = await reverseGeocodeLocation(latitude, longitude);
+        } catch {
+          // Keep a human-readable fallback when reverse geocoding is unavailable.
+        }
+
+        setSelectedLocation({
+          latitude,
+          longitude,
+          label: resolvedAddress,
+          source: "current-location",
+        });
+
+        setAddress((currentAddress) =>
+          currentAddress.trim() ? currentAddress : resolvedAddress
+        );
+      },
+      () => {
+        setLocationError("We could not access your current location. Please allow location permission and try again.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!canSubmit || isSubmitting) {
+      return;
+    }
+
+    const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
+
+    if (!token) {
+      setSubmitError("Please sign in before submitting a report.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const imageDataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Unable to read the selected image."));
+        reader.readAsDataURL(photoFile);
+      });
+
+      const response = await fetch(`${apiBaseUrl}/api/reports`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          hazard_type: category,
+          description,
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          location_name: address,
+          barangay,
+          image_data: imageDataUrl,
+          image_name: photoFile.name,
+          image_mime: photoFile.type,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          clearStoredAuth();
+          setSubmitError("Your session expired. Please sign in again before submitting a report.");
+          return;
+        }
+
+        const validationErrors = data?.errors ? Object.values(data.errors).flat().join(" ") : "";
+        setSubmitError(data?.message ?? validationErrors ?? "Unable to submit your report.");
+        return;
+      }
+
+      setShowSuccessModal(true);
+    } catch {
+      setSubmitError("Unable to reach the report service.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReportAnother = () => {
@@ -61,15 +195,17 @@ function ReportHazardPage() {
     setBarangay("");
     setBarangayTouched(false);
     setSelectedLocation(null);
+    setLocationError("");
+    setSubmitError("");
     setShowSuccessModal(false);
   };
 
   return (
     <div className="overflow-x-hidden">
-      <div className="max-w-[1532px] mx-auto">
+      <div className="mx-auto" style={{ maxWidth: "1532px" }}>
         <AuthNavbar />
 
-        <div style={{ backgroundColor: "#D4D3FF" }} className="px-[108px] py-8">
+        <div style={{ backgroundColor: "#D4D3FF", paddingLeft: "108px", paddingRight: "108px" }} className="py-8">
           <h1 className="font-inter font-bold text-2xl text-center" style={{ color: "#0D0B61" }}>
             Report a Hazard
           </h1>
@@ -120,7 +256,7 @@ function ReportHazardPage() {
             <div style={{ width: "404px" }}>
               <button
                 type="button"
-                onClick={() => setSelectedLocation({ x: 50, y: 50 })}
+                onClick={handleUseCurrentLocation}
                 className="w-full flex items-center justify-center gap-2 rounded-[10px] text-white font-inter font-bold text-sm"
                 style={{ height: "37px", backgroundColor: "#00BAFF" }}
               >
@@ -128,8 +264,12 @@ function ReportHazardPage() {
                 Use Current Location
               </button>
 
+              {locationError && (
+                <p className="mt-2 text-xs font-medium text-[#D30004]">{locationError}</p>
+              )}
+
               <div className="mt-3">
-                <MiniMapPreview onLocationSelect={setSelectedLocation} />
+                <MiniMapPreview location={selectedLocation} onLocationSelect={setSelectedLocation} />
               </div>
 
               <label className="font-inter font-semibold text-sm text-black mt-4 block">
@@ -157,13 +297,17 @@ function ReportHazardPage() {
 
               <button
                 type="button"
-                disabled={!canSubmit}
+                disabled={!canSubmit || isSubmitting}
                 onClick={handleSubmit}
                 className="w-full rounded-[10px] text-white font-inter font-bold text-sm mt-10 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{ height: "44px", backgroundColor: "#042545" }}
               >
-                SUBMIT REPORT
+                {isSubmitting ? "SUBMITTING..." : "SUBMIT REPORT"}
               </button>
+
+              {submitError && (
+                <p className="mt-3 text-sm font-medium text-[#D30004]">{submitError}</p>
+              )}
             </div>
           </div>
         </div>

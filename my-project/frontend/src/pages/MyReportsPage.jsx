@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ClipboardList, Clock, CheckCircle, Ban, Search, Plus } from "lucide-react";
 
@@ -8,9 +8,8 @@ import StatCard from "../components/StatCard";
 import HazardReportCard from "../components/HazardReportCard";
 import ReportStatusTimeline from "../components/ReportStatusTimeline";
 
-import { currentUser, hazardReports, hazardTypes, barangayOptions, reportStatuses } from "../components/data/MockDashboardData";
+import { hazardTypes, barangayOptions, reportStatuses } from "../components/data/MockDashboardData";
 import {
-  getMyReports,
   getReportStats,
   getDefaultSelectedReport,
   filterMyReports,
@@ -21,17 +20,163 @@ import {
 
 const PAGE_SIZE = 3;
 
+function clearStoredAuth() {
+  localStorage.removeItem("northsafe_token");
+  localStorage.removeItem("northsafe_user");
+  sessionStorage.removeItem("northsafe_token");
+  sessionStorage.removeItem("northsafe_user");
+}
+
+function formatDateTime(date) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours24 = date.getHours();
+  const hours12 = hours24 % 12 || 12;
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const suffix = hours24 >= 12 ? "PM" : "AM";
+
+  return `${month}/${day}/${year} ${String(hours12).padStart(2, "0")}:${minutes}${suffix}`;
+}
+
+function formatTimeAgo(dateValue) {
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "just now";
+  }
+
+  const minutes = Math.max(1, Math.round((Date.now() - date.getTime()) / 60000));
+
+  if (minutes < 60) {
+    return `${minutes} min${minutes === 1 ? "" : "s"} ago`;
+  }
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+  }
+
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+function deriveAlertLevel(report) {
+  const status = String(report.status ?? "pending").toLowerCase();
+
+  if (status === "rejected") {
+    return "white";
+  }
+
+  if (status === "resolved") {
+    return "red";
+  }
+
+  return "blue";
+}
+
+function normalizeReport(report) {
+  const createdAt = report.createdAt ?? report.created_at ?? new Date().toISOString();
+  const createdDate = new Date(createdAt);
+  const statusHistory = Array.isArray(report.statusHistory)
+    ? report.statusHistory.map((entry) => ({
+        status: entry.status,
+        timestamp: entry.timestamp,
+        remarks: entry.remarks ?? null,
+      }))
+    : [];
+
+  return {
+    ...report,
+    reporterId: report.reporterId ?? report.user_id ?? null,
+    reporterName: report.reporterName ?? report.userName ?? "NorthSafe User",
+    timeAgo: report.timeAgo ?? formatTimeAgo(createdDate),
+    alertLevel: report.alertLevel ?? deriveAlertLevel(report),
+    title: report.title ?? "Untitled Report",
+    description: report.description ?? "",
+    address: report.address ?? report.locationName ?? report.location_name ?? "",
+    dateTime: report.dateTime ?? formatDateTime(createdDate),
+    hazardType: report.hazardType ?? report.hazard_type ?? "",
+    barangay: report.barangay ?? null,
+    lat: report.lat ?? report.latitude ?? null,
+    lng: report.lng ?? report.longitude ?? null,
+    statusHistory,
+    upvotes: report.upvotes ?? 0,
+    downvotes: report.downvotes ?? 0,
+    comments: report.comments ?? 0,
+    imageSrc: report.imageSrc ?? report.imageUrl ?? null,
+    status: report.status ?? "Pending",
+    createdAt: report.createdAt ?? createdDate.toISOString(),
+  };
+}
+
 function MyReportsPage() {
   const navigate = useNavigate();
-  const myReports = useMemo(() => getMyReports(hazardReports, currentUser.id), []);
-  const stats = useMemo(() => getReportStats(myReports), [myReports]);
-
-  const [selectedReport, setSelectedReport] = useState(() => getDefaultSelectedReport(myReports));
+  const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
+  const [myReports, setMyReports] = useState([]);
+  const [selectedReport, setSelectedReport] = useState(null);
   const [search, setSearch] = useState("");
   const [barangay, setBarangay] = useState("");
   const [hazardType, setHazardType] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
+
+    if (!token) {
+      navigate("/signin");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadReports() {
+      setIsLoading(true);
+      setLoadError("");
+
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/reports/mine`, {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          signal: controller.signal,
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+          clearStoredAuth();
+          navigate("/signin");
+          return;
+        }
+
+        if (!response.ok) {
+          setLoadError(data?.message ?? "Unable to load your reports.");
+          return;
+        }
+
+        const normalizedReports = (data?.reports ?? []).map(normalizeReport);
+        setMyReports(normalizedReports);
+        setSelectedReport(getDefaultSelectedReport(normalizedReports));
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setLoadError("Unable to load your reports.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadReports();
+
+    return () => controller.abort();
+  }, [apiBaseUrl, navigate]);
+
+  const stats = useMemo(() => getReportStats(myReports), [myReports]);
 
   const filteredReports = useMemo(
     () =>
@@ -59,25 +204,21 @@ function MyReportsPage() {
 
   return (
     <div>
-      <div className="max-w-[1532px] mx-auto">
+      <div className="mx-auto" style={{ maxWidth: "1532px" }}>
         <AuthNavbar />
 
-        <div style={{ backgroundColor: "#D4D3FF" }} className="px-[108px] py-8">
-          {/* Stat cards */}
+        <div style={{ backgroundColor: "#D4D3FF", paddingLeft: "108px", paddingRight: "108px" }} className="py-8">
           <div className="flex gap-5">
             {statCards.map((s) => (
               <StatCard key={s.label} {...s} />
             ))}
           </div>
 
-          {/* Title + primary action */}
           <div className="flex items-center justify-between mt-8">
             <h2 className="font-krub font-bold text-xl" style={{ color: "#6A6A6A" }}>
               Submitted Reports
             </h2>
 
-            {/* Assumes a "/report-hazard" route exists for ReportHazardPage —
-                update the `to` value if your router uses a different path. */}
             <Link
               to="/report-hazard"
               className="flex items-center gap-2 rounded-lg text-white font-inter font-bold text-sm justify-center"
@@ -88,7 +229,6 @@ function MyReportsPage() {
             </Link>
           </div>
 
-          {/* Search + filters */}
           <div className="flex items-center gap-3 mt-4">
             <div
               className="flex items-center gap-2 bg-white rounded-lg px-4 flex-1"
@@ -156,10 +296,17 @@ function MyReportsPage() {
             </select>
           </div>
 
-          {/* Report list + timeline */}
           <div className="flex gap-5 mt-6 items-start">
             <div className="flex-1 flex flex-col gap-5">
-              {visibleReports.length === 0 ? (
+              {isLoading ? (
+                <div className="bg-white rounded-2xl p-10 text-center text-gray-400 text-sm">
+                  Loading your reports...
+                </div>
+              ) : loadError ? (
+                <div className="bg-white rounded-2xl p-10 text-center text-red-500 text-sm">
+                  {loadError}
+                </div>
+              ) : visibleReports.length === 0 ? (
                 <div className="bg-white rounded-2xl p-10 text-center text-gray-400 text-sm">
                   No reports match these filters yet.
                 </div>
@@ -183,9 +330,7 @@ function MyReportsPage() {
                     width="100%"
                     buttonColor="#081435"
                     onClick={() => setSelectedReport(report)}
-                    onViewHazardMap={() =>
-                      navigate("/hazard-map", { state: { focusReportId: report.id } })
-                    }
+                    onViewHazardMap={() => navigate("/hazard-map", { state: { focusReportId: report.id } })}
                   />
                 ))
               )}
@@ -198,7 +343,7 @@ function MyReportsPage() {
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     className="h-8 w-8 flex items-center justify-center rounded-full text-gray-500 disabled:opacity-30"
                   >
-                    ‹
+                    &lsaquo;
                   </button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
                     <button
@@ -221,14 +366,12 @@ function MyReportsPage() {
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     className="h-8 w-8 flex items-center justify-center rounded-full text-gray-500 disabled:opacity-30"
                   >
-                    ›
+                    &rsaquo;
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Sticky like the other right-rail sidebars already in the app
-                (Weather/Map/Alert Levels/Rewards on the dashboard). */}
             <div className="sticky" style={{ top: "100px" }}>
               <ReportStatusTimeline report={selectedReport} />
             </div>

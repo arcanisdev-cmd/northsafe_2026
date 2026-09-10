@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState, useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useRef, useState, useMemo, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Star, User } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationsDropdown from "../components/NotificationsDropdown";
@@ -27,11 +27,21 @@ function readStoredUser() {
   }
 }
 
+function clearStoredAuth() {
+  localStorage.removeItem("northsafe_token");
+  localStorage.removeItem("northsafe_user");
+  sessionStorage.removeItem("northsafe_token");
+  sessionStorage.removeItem("northsafe_user");
+}
+
 function AuthNavbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [authUser, setAuthUser] = useState(() => readStoredUser());
   const notificationsButtonRef = useRef(null);
+
+  const isProtectedPath = ["/dashboard", "/hazard-map", "/my-reports"].includes(location.pathname);
 
   // Owned here (not inside the dropdown) so the unread badge below and the
   // dropdown's own counts/list always agree — same pattern as
@@ -53,10 +63,14 @@ function AuthNavbar() {
     const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
 
     if (!token) {
+      if (isProtectedPath) {
+        navigate("/signin", { replace: true });
+      }
+
       return;
     }
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+    const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
     const controller = new AbortController();
 
     fetch(`${apiBaseUrl}/api/me`, {
@@ -68,6 +82,15 @@ function AuthNavbar() {
     })
       .then((response) => response.json().then((data) => ({ response, data })))
       .then(({ response, data }) => {
+        if (response.status === 401) {
+          clearStoredAuth();
+          setAuthUser(null);
+          if (isProtectedPath) {
+            navigate("/signin", { replace: true });
+          }
+          return;
+        }
+
         if (!response.ok || !data?.user) {
           return;
         }
@@ -85,9 +108,10 @@ function AuthNavbar() {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [isProtectedPath, location.pathname, navigate]);
 
   const displayName = authUser?.fullName ?? authUser?.name ?? "NorthSafe User";
+  const points = authUser?.rewardPoints ?? authUser?.points ?? 0;
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
@@ -159,7 +183,7 @@ function AuthNavbar() {
               </p>
               <p className="flex items-center gap-1 text-xs font-semibold text-[#FFB256]">
                 <Star size={12} className="fill-[#FFB256]" />
-                0 POINTS
+                {points} POINTS
               </p>
             </div>
           </div>
