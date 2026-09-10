@@ -21,6 +21,24 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## NorthSafe backend setup
+
+1. Create the PostgreSQL database on your server first, for example:
+
+```bash
+psql -h 192.168.100.48 -U postgres -c "CREATE DATABASE northsafe_2026;"
+```
+
+2. Copy `.env.example` to `.env`, set your database password, and generate an app key.
+
+3. Run the migrations to create the user profile and auth token columns:
+
+```bash
+php artisan migrate --force
+```
+
+4. The auth endpoints are `POST /api/signup`, `POST /api/login`, `GET /api/me`, and `POST /api/logout`.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
