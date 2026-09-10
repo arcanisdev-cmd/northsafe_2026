@@ -59,6 +59,10 @@ function HazardReportCard({
   width = "718px",
   buttonColor = "#46B5FF",
   onClick,
+  // New — optional, defaults to no-op, so every existing call site
+  // (Home feed, etc.) is completely unaffected. Only MyReportsPage passes
+  // this for now, to make "VIEW HAZARD MAP" actually navigate somewhere.
+  onViewHazardMap,
 }) {
   if (compact) {
     return (
@@ -190,6 +194,12 @@ function HazardReportCard({
             </button>
             <button
               type="button"
+              onClick={(e) => {
+                // Stop the click from also bubbling up to the card's own
+                // onClick (e.g. selecting the report in MyReportsPage).
+                e.stopPropagation();
+                onViewHazardMap?.();
+              }}
               className="ml-auto px-5 py-1.5 rounded-full text-white text-sm font-bold"
               style={{ backgroundColor: buttonColor }}
             >

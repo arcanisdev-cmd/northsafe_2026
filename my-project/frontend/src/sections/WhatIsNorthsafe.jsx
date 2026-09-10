@@ -18,7 +18,10 @@ function WhatIsNorthsafe() {
   }, []);
 
   return (
-    <section className="flex pl-[108px] pr-[80px] py-[80px] gap-[64px] bg-gradient-to-b from-[#C9C3E8] via-[#EDEBF7] to-white">
+    <section
+      id="about"
+      className="flex pl-[108px] pr-[80px] pt-[80px] pb-[30px] gap-[21px] bg-gradient-to-b from-gray-100 to-white scroll-mt-[100px]"
+    >
       {/* Left: carousel image + centered pill indicators */}
       <div className="shrink-0 flex flex-col items-center">
         <div

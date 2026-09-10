@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef, useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Star, User } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationsDropdown from "../components/NotificationsDropdown";
+import { currentUser, notifications as allNotifications } from "../components/data/MockDashboardData";
+import { getMyNotifications, getUnreadCount } from "../utils/notificationSelectors";
+
 const navLinks = [
   { label: "Home", path: "/dashboard" },
   { label: "Hazard Map", path: "/hazard-map" },
@@ -29,6 +32,22 @@ function AuthNavbar() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [authUser, setAuthUser] = useState(() => readStoredUser());
   const notificationsButtonRef = useRef(null);
+
+  // Owned here (not inside the dropdown) so the unread badge below and the
+  // dropdown's own counts/list always agree — same pattern as
+  // currentUser.points being read from one place everywhere it's shown.
+  const [notifications, setNotifications] = useState(() =>
+    getMyNotifications(allNotifications, currentUser.id)
+  );
+  const unreadCount = useMemo(() => getUnreadCount(notifications), [notifications]);
+
+  const handleMarkRead = (id) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  };
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
@@ -71,7 +90,7 @@ function AuthNavbar() {
   const displayName = authUser?.fullName ?? authUser?.name ?? "NorthSafe User";
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-100">
+    <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
       <div className="h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
         <Link to="/dashboard">
           <img src={logo} alt="NorthSafe logo" className="h-[64px] w-auto" />
@@ -89,11 +108,19 @@ function AuthNavbar() {
                       ref={notificationsButtonRef}
                       type="button"
                       onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                      className={`font-roboto font-bold text-base uppercase transition-colors ${
+                      className={`relative flex items-center gap-1.5 font-roboto font-bold text-base uppercase transition-colors ${
                         isNotificationsOpen ? "text-[#0BA6DF]" : "text-[#081435] hover:text-[#0BA6DF]"
                       }`}
                     >
                       {link.label}
+                      {unreadCount > 0 && (
+                        <span
+                          className="flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-white text-[10px] font-bold"
+                          style={{ backgroundColor: "#D30004" }}
+                        >
+                          {unreadCount}
+                        </span>
+                      )}
                     </button>
                   </li>
                 );
@@ -143,6 +170,9 @@ function AuthNavbar() {
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         anchorRef={notificationsButtonRef}
+        notifications={notifications}
+        onMarkRead={handleMarkRead}
+        onMarkAllRead={handleMarkAllRead}
       />
     </nav>
   );

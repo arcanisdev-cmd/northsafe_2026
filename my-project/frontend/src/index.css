@@ -20,7 +20,9 @@ body {
 
 html, body {
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
+
 
 @keyframes modal-backdrop-in {
   from { opacity: 0; }

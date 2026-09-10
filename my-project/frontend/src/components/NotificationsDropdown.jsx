@@ -1,42 +1,56 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, AlertTriangle, ThumbsDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { X } from "lucide-react";
 import NotificationItem from "./NotificationItem";
+import { groupNotificationsByDate } from "../utils/notificationSelectors";
 
-const todayNotifications = [
-  {
-    id: 1,
-    icon: AlertTriangle,
-    iconColor: "#D30004",
-    title: "Report Has Been Rejected.",
-    titleColor: "#D30004",
-    subtitle: "Large Pothole on Main Road Causing Traffic Delays",
-    timeAgo: "7hrs",
-    unread: true,
-  },
-  {
-    id: 2,
-    icon: ThumbsDown,
-    iconColor: "#0BA6DF",
-    title: "James and 4 other people downvoted your report.",
-    titleColor: "#0BA6DF",
-    subtitle: "Large Pothole on Main Road Causing Traffic Delays",
-    timeAgo: "7hrs",
-    unread: true,
-  },
-];
-
-const olderNotifications = [];
-
-function NotificationsDropdown({ isOpen, onClose }) {
+/**
+ * `notifications`, `onMarkRead`, `onMarkAllRead` are owned by the parent
+ * (AuthNavbar) so the unread badge in the nav and this panel always agree —
+ * same "single source of truth" pattern as currentUser.points.
+ *
+ * `anchorRef` is measured directly (getBoundingClientRect) to position the
+ * panel relative to the actual button that opened it, instead of guessing
+ * fixed pixel offsets that assumed a specific navbar layout.
+ */
+function NotificationsDropdown({ isOpen, onClose, anchorRef, notifications, onMarkRead, onMarkAllRead }) {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("unread");
+  const [position, setPosition] = useState({ top: 94, right: 108 });
+
+  useEffect(() => {
+    function updatePosition() {
+      if (!anchorRef?.current) return;
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 12,
+        right: Math.max(16, window.innerWidth - rect.right - 40),
+      });
+    }
+
+    if (isOpen) {
+      updatePosition();
+      window.addEventListener("resize", updatePosition);
+      return () => window.removeEventListener("resize", updatePosition);
+    }
+  }, [isOpen, anchorRef]);
 
   if (!isOpen) return null;
 
-  const filterFn = (n) => (activeTab === "unread" ? n.unread : true);
-  const visibleToday = todayNotifications.filter(filterFn);
-  const visibleOlder = olderNotifications.filter(filterFn);
-  const totalUnread = todayNotifications.filter((n) => n.unread).length;
+  const filterFn = (n) => (activeTab === "unread" ? !n.read : true);
+  const visible = notifications.filter(filterFn);
+  const { today: visibleToday, older: visibleOlder } = groupNotificationsByDate(visible);
+  const totalUnread = notifications.filter((n) => !n.read).length;
+
+  const handleView = (notification) => {
+    onMarkRead(notification.id);
+    onClose();
+    // No dedicated report-detail route yet — sending people to My Reports,
+    // where the related report actually lives. Swap this for a direct
+    // "/my-reports/:id" link once that route exists.
+    navigate("/my-reports");
+  };
 
   const content = (
     <>
@@ -47,19 +61,30 @@ function NotificationsDropdown({ isOpen, onClose }) {
         style={{ top: "82px" }}
       />
 
-      {/* Panel */}
+      {/* Panel — position is measured from anchorRef, not hardcoded */}
       <div
         className="fixed z-50 bg-white rounded-xl shadow-xl overflow-hidden flex flex-col"
-        style={{ top: "94px", right: "108px", width: "340px", maxHeight: "70vh" }}
+        style={{ top: `${position.top}px`, right: `${position.right}px`, width: "340px", maxHeight: "70vh" }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
           <h3 className="font-inter font-bold text-lg text-black">
             Notifications ({totalUnread})
           </h3>
-          <button type="button" onClick={onClose} aria-label="Close notifications">
-            <X size={20} className="text-gray-500" />
-          </button>
+          <div className="flex items-center gap-3">
+            {totalUnread > 0 && (
+              <button
+                type="button"
+                onClick={onMarkAllRead}
+                className="font-inter text-xs font-semibold text-[#0BA6DF] hover:underline"
+              >
+                Mark all as read
+              </button>
+            )}
+            <button type="button" onClick={onClose} aria-label="Close notifications">
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -96,7 +121,7 @@ function NotificationsDropdown({ isOpen, onClose }) {
                     Today
                   </p>
                   {visibleToday.map((n) => (
-                    <NotificationItem key={n.id} {...n} />
+                    <NotificationItem key={n.id} notification={n} onView={handleView} />
                   ))}
                 </div>
               )}
@@ -107,7 +132,7 @@ function NotificationsDropdown({ isOpen, onClose }) {
                     Older
                   </p>
                   {visibleOlder.map((n) => (
-                    <NotificationItem key={n.id} {...n} />
+                    <NotificationItem key={n.id} notification={n} onView={handleView} />
                   ))}
                 </div>
               )}

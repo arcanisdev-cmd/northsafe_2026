@@ -20,7 +20,8 @@ function HowItWorks() {
 
   return (
     <section
-      className="py-24 text-center"
+      id="how-it-works"
+      className="py-24 text-center scroll-mt-[100px]"
       style={{
         background:
           "radial-gradient(circle at 15% 15%, rgba(120,80,200,0.35), transparent 45%), " +

@@ -41,7 +41,7 @@ const features = [
 
 function Features() {
   return (
-    <section className="px-[100px] pt-[30px] pb-[80px]">
+    <section id="features" className="px-[100px] pt-[30px] pb-[80px] scroll-mt-[100px]">
       <p
         className="font-inter font-black text-center"
         style={{ fontSize: "20px", color: "#00BEC2" }}
