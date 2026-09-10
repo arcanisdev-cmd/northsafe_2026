@@ -207,7 +207,10 @@ function MyReportsPage() {
       <div className="mx-auto" style={{ maxWidth: "1532px" }}>
         <AuthNavbar />
 
-        <div style={{ backgroundColor: "#D4D3FF", paddingLeft: "108px", paddingRight: "108px" }} className="py-8">
+        {/* No manual spacer needed here — AuthNavbar now measures its own
+            height and renders a matching spacer internally. */}
+
+        <div style={{ backgroundColor: "#E8F4FF", paddingLeft: "108px", paddingRight: "108px" }} className="py-8">
           <div className="flex gap-5">
             {statCards.map((s) => (
               <StatCard key={s.label} {...s} />

@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage";
 import HazardMapPage from "./pages/HazardMapPage";
 import MyReportsPage from "./pages/MyReportsPage";
 import ReportHazardPage from "./pages/ReportHazardPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function RequireAuth({ children }) {
   const location = useLocation();
@@ -49,6 +50,7 @@ function App() {
         )}
       />
       <Route path="/report-hazard" element={<ReportHazardPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
     </Routes>
   );
 }

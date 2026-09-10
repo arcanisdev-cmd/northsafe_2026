@@ -186,6 +186,11 @@ export const floodedRoads = [];
 //
 // reporterId ties a report to currentUser.id (or another user) for
 // ownership-based views like My Reports.
+//
+// `comments` used to be a hand-typed count with no backing content. It's
+// now DERIVED (see HazardReportCard) from `commentsList.length` below, so
+// the number shown on the card and the actual thread can never drift apart.
+// `commentsList` entries: { id, name, avatarUrl, message, timeAgo }.
 export const hazardReports = [
   {
     id: 1,
@@ -208,7 +213,44 @@ export const hazardReports = [
     ],
     upvotes: 12,
     downvotes: 12,
-    comments: 12,
+    comments: 5,
+    commentsList: [
+      {
+        id: "c1-1",
+        name: "Jam Dagonio",
+        avatarUrl: null,
+        message: "Di naman totoo yan. wala namang ganyang baha dito sa baranggay 167",
+        timeAgo: "5 hr ago",
+      },
+      {
+        id: "c1-2",
+        name: "Jak Roberto",
+        avatarUrl: null,
+        message: "Fake news po iyan. Delete mo na post mo.",
+        timeAgo: "5 hrs ago",
+      },
+      {
+        id: "c1-3",
+        name: "Josephine Bracken",
+        avatarUrl: null,
+        message: "Liar kang kankaloo ka!",
+        timeAgo: "3 hrs ago",
+      },
+      {
+        id: "c1-4",
+        name: "Josefine",
+        avatarUrl: null,
+        message: "ay oo. bumabaha dito piro hinde ganyan",
+        timeAgo: "2 hrs ago",
+      },
+      {
+        id: "c1-5",
+        name: "Rey Valera",
+        avatarUrl: null,
+        message: "Grabe naman itong report na ito, sino ba nagbigay nito.",
+        timeAgo: "1 hrs ago",
+      },
+    ],
     imageSrc: null,
   },
   {
@@ -231,7 +273,8 @@ export const hazardReports = [
     ],
     upvotes: 12,
     downvotes: 12,
-    comments: 12,
+    comments: 0,
+    commentsList: [],
     imageSrc: null,
   },
   {
@@ -257,7 +300,16 @@ export const hazardReports = [
     ],
     upvotes: 12,
     downvotes: 12,
-    comments: 12,
+    comments: 1,
+    commentsList: [
+      {
+        id: "c3-1",
+        name: "Rey Valera",
+        avatarUrl: null,
+        message: "Ingat po dyan, malapit yan sa waiting shed.",
+        timeAgo: "6 hrs ago",
+      },
+    ],
     imageSrc: null,
   },
   {
@@ -280,7 +332,8 @@ export const hazardReports = [
     ],
     upvotes: 12,
     downvotes: 12,
-    comments: 12,
+    comments: 0,
+    commentsList: [],
     imageSrc: null,
   },
   {
@@ -304,7 +357,8 @@ export const hazardReports = [
     ],
     upvotes: 12,
     downvotes: 12,
-    comments: 12,
+    comments: 0,
+    commentsList: [],
     imageSrc: null,
   },
 
@@ -329,7 +383,8 @@ export const hazardReports = [
     ],
     upvotes: 12,
     downvotes: 12,
-    comments: 12,
+    comments: 0,
+    commentsList: [],
     imageSrc: null,
   },
   {
@@ -354,6 +409,29 @@ export const hazardReports = [
     upvotes: 8,
     downvotes: 1,
     comments: 3,
+    commentsList: [
+      {
+        id: "c7-1",
+        name: "Maria Santos",
+        avatarUrl: null,
+        message: "Same po dito sa amin, sana ma-ayos na agad.",
+        timeAgo: "20 hrs ago",
+      },
+      {
+        id: "c7-2",
+        name: "Bong Cruz",
+        avatarUrl: null,
+        message: "Nareport ko na rin ito sa barangay hall.",
+        timeAgo: "18 hrs ago",
+      },
+      {
+        id: "c7-3",
+        name: "Jam Dagonio",
+        avatarUrl: null,
+        message: "Salamat sa pag-verify, ingat lahat dyan.",
+        timeAgo: "10 hrs ago",
+      },
+    ],
     imageSrc: null,
   },
   {
@@ -379,6 +457,22 @@ export const hazardReports = [
     upvotes: 1,
     downvotes: 4,
     comments: 2,
+    commentsList: [
+      {
+        id: "c8-1",
+        name: "Josephine Bracken",
+        avatarUrl: null,
+        message: "Permitted collection point po talaga yan, nagtanong na ako sa LGU.",
+        timeAgo: "2 days ago",
+      },
+      {
+        id: "c8-2",
+        name: "Rey Valera",
+        avatarUrl: null,
+        message: "Ah okay, pasensya na sa maling report.",
+        timeAgo: "2 days ago",
+      },
+    ],
     imageSrc: null,
   },
   {
@@ -405,6 +499,50 @@ export const hazardReports = [
     upvotes: 20,
     downvotes: 2,
     comments: 6,
+    commentsList: [
+      {
+        id: "c9-1",
+        name: "Maria Santos",
+        avatarUrl: null,
+        message: "Grabe malaki pala ito, salamat sa report.",
+        timeAgo: "4 days ago",
+      },
+      {
+        id: "c9-2",
+        name: "Bong Cruz",
+        avatarUrl: null,
+        message: "Na-fix na ba ito? Dadaan ako mamaya.",
+        timeAgo: "3 days ago",
+      },
+      {
+        id: "c9-3",
+        name: "Jak Roberto",
+        avatarUrl: null,
+        message: "Oo na-resolve na, ayos na daanan.",
+        timeAgo: "2 days ago",
+      },
+      {
+        id: "c9-4",
+        name: "Josefine",
+        avatarUrl: null,
+        message: "Ang bilis, galing ng LGU natin.",
+        timeAgo: "2 days ago",
+      },
+      {
+        id: "c9-5",
+        name: "Rey Valera",
+        avatarUrl: null,
+        message: "Sana ganito palagi ang response time.",
+        timeAgo: "1 day ago",
+      },
+      {
+        id: "c9-6",
+        name: "Josephine Bracken",
+        avatarUrl: null,
+        message: "Salamat Juan sa pag-report nito!",
+        timeAgo: "1 day ago",
+      },
+    ],
     imageSrc: null,
   },
 ];

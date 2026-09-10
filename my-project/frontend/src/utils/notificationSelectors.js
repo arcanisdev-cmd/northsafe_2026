@@ -12,13 +12,18 @@ export const MOCK_NOW = new Date(2026, 5, 15, 23, 30); // June 15, 2026, 11:30 P
 // `type` string — kept out of MockDashboardData.js since a backend would
 // send a type string, not a lucide-react component reference.
 export const NOTIFICATION_TYPE_STYLES = {
-  rejected: { icon: AlertTriangle, color: "#D30004" },
-  downvoted: { icon: ThumbsDown, color: "#0BA6DF" },
-  upvoted: { icon: ThumbsUp, color: "#0BA6DF" },
-  verified: { icon: CheckCircle2, color: "#22A559" },
-  resolved: { icon: CheckCircle2, color: "#22A559" },
-  comment: { icon: MessageCircle, color: "#1E1391" },
+  rejected: { icon: AlertTriangle, color: "#D30004", softBg: "#FDE8E8" },
+  downvoted: { icon: ThumbsDown, color: "#0BA6DF", softBg: "#EAF6FF" },
+  upvoted: { icon: ThumbsUp, color: "#0BA6DF", softBg: "#EAF6FF" },
+  verified: { icon: CheckCircle2, color: "#22A559", softBg: "#E8F8EE" },
+  resolved: { icon: CheckCircle2, color: "#22A559", softBg: "#E8F8EE" },
+  comment: { icon: MessageCircle, color: "#1E1391", softBg: "#EDEBFF" },
 };
+
+/** Convenience accessor so components don't repeat the fallback logic. */
+export function getNotificationIcon(type) {
+  return NOTIFICATION_TYPE_STYLES[type] || NOTIFICATION_TYPE_STYLES.comment;
+}
 
 export function getMyNotifications(notifications, userId) {
   return notifications.filter((n) => n.recipientId === userId);

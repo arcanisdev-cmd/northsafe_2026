@@ -201,7 +201,7 @@ function ReportHazardPage() {
   };
 
   return (
-    <div className="overflow-x-hidden">
+    <div >
       <div className="mx-auto" style={{ maxWidth: "1532px" }}>
         <AuthNavbar />
 

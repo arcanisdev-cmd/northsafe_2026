@@ -1,31 +1,26 @@
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Star, User } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationsDropdown from "../components/NotificationsDropdown";
-import { currentUser, notifications as allNotifications } from "../components/data/MockDashboardData";
-import { getMyNotifications, getUnreadCount } from "../utils/notificationSelectors";
-
-const navLinks = [
-  { label: "Home", path: "/dashboard" },
-  { label: "Hazard Map", path: "/hazard-map" },
-  { label: "My Reports", path: "/my-reports" },
-  { label: "Notifications", path: null },
-];
-
-function readStoredUser() {
-  const rawUser = localStorage.getItem("northsafe_user") ?? sessionStorage.getItem("northsafe_user");
-
-  if (!rawUser) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(rawUser);
-  } catch {
-    return null;
-  }
-}
+import LogoutConfirmModal from "../components/LogoutConfirmModal";
+import AuthNavLinks from "../components/navigation/AuthNavLinks";
+import ProfileMenu from "../components/navigation/ProfileMenu";
+import {
+  currentUser,
+  notifications as allNotifications,
+} from "../components/data/MockDashboardData";
+import {
+  getMyNotifications,
+  getUnreadCount,
+} from "../utils/notificationSelectors";
 
 function clearStoredAuth() {
   localStorage.removeItem("northsafe_token");
@@ -35,10 +30,15 @@ function clearStoredAuth() {
 }
 
 function AuthNavbar() {
-  const location = useLocation();
   const navigate = useNavigate();
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [authUser, setAuthUser] = useState(() => readStoredUser());
+
+  const [isNotificationsOpen, setIsNotificationsOpen] =
+    useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] =
+    useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [navHeight, setNavHeight] = useState(82);
+
   const notificationsButtonRef = useRef(null);
 
   const isProtectedPath = ["/dashboard", "/hazard-map", "/my-reports"].includes(location.pathname);
@@ -109,96 +109,148 @@ function AuthNavbar() {
 
     return () => controller.abort();
   }, [isProtectedPath, location.pathname, navigate]);
+  const navRef = useRef(null);
 
-  const displayName = authUser?.fullName ?? authUser?.name ?? "NorthSafe User";
+  useLayoutEffect(() => {
+    function measure() {
+      if (navRef.current) {
+        setNavHeight(
+          navRef.current.getBoundingClientRect().height
+        );
+      }
+    }
+
+    measure();
+
+    window.addEventListener("resize", measure);
+
+    return () => {
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 4);
+    }
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+
+    return () =>
+      window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const [notifications, setNotifications] = useState(() =>
+    getMyNotifications(
+      allNotifications,
+      currentUser.id
+    )
+  );
+
+  const unreadCount = useMemo(
+    () => getUnreadCount(notifications),
+    [notifications]
+  );
+
+  function handleMarkRead(id) {
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id
+          ? { ...notification, read: true }
+          : notification
+      )
+    );
+  }
+
+  function handleMarkAllRead() {
+    setNotifications((prev) =>
+      prev.map((notification) => ({
+        ...notification,
+        read: true,
+      }))
+    );
+  }
+
+  function handleLogoutRequest() {
+    setIsNotificationsOpen(false);
+    setIsLogoutModalOpen(true);
+  }
+
+  function handleLogoutConfirm() {
+    setIsLogoutModalOpen(false);
+    navigate("/signin");
+  }
   const points = authUser?.rewardPoints ?? authUser?.points ?? 0;
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
-      <div className="h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
-        <Link to="/dashboard">
-          <img src={logo} alt="NorthSafe logo" className="h-[64px] w-auto" />
-        </Link>
+    <>
+      <nav
+        ref={navRef}
+        className={`fixed left-0 top-0 z-[9999] w-full border-b bg-white transition-shadow duration-300 [view-transition-name:navigation] ${
+          isScrolled
+            ? "border-transparent shadow-[0_4px_16px_rgba(8,20,53,0.08)]"
+            : "border-gray-100 shadow-none"
+        }`}
+      >
+        <div className="mx-auto max-w-[1532px]">
+          <div className="flex h-[82px] items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
+            <Link
+              to="/dashboard"
+              className="transition-transform duration-200 active:scale-[0.98]"
+            >
+              <img
+                src={logo}
+                alt="NorthSafe logo"
+                className="h-[64px] w-auto"
+              />
+            </Link>
 
-        <div className="hidden md:flex items-center gap-8">
-          <ul className="flex items-center gap-8">
-            {navLinks.map((link) => {
-              const isActive = link.path && location.pathname === link.path;
+            <div className="hidden items-center gap-8 md:flex">
+              <AuthNavLinks
+                unreadCount={unreadCount}
+                isNotificationsOpen={isNotificationsOpen}
+                onNotificationsClick={() =>
+                  setIsNotificationsOpen((prev) => !prev)
+                }
+                notificationsButtonRef={
+                  notificationsButtonRef
+                }
+              />
 
-              if (link.path === null) {
-                return (
-                  <li key={link.label}>
-                    <button
-                      ref={notificationsButtonRef}
-                      type="button"
-                      onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                      className={`relative flex items-center gap-1.5 font-roboto font-bold text-base uppercase transition-colors ${
-                        isNotificationsOpen ? "text-[#0BA6DF]" : "text-[#081435] hover:text-[#0BA6DF]"
-                      }`}
-                    >
-                      {link.label}
-                      {unreadCount > 0 && (
-                        <span
-                          className="flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-white text-[10px] font-bold"
-                          style={{ backgroundColor: "#D30004" }}
-                        >
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                );
-              }
-
-              return (
-                <li key={link.label}>
-                  <Link
-                    to={link.path}
-                    className={`font-roboto font-bold text-base uppercase transition-colors ${
-                      isActive ? "text-[#0BA6DF]" : "text-[#081435] hover:text-[#0BA6DF]"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
-              {authUser?.avatarUrl ? (
-                <img
-                  src={authUser.avatarUrl}
-                  alt={displayName}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <User size={18} className="text-[#081435]" />
-              )}
-            </div>
-            <div>
-              <p className="font-roboto font-bold text-sm uppercase leading-tight text-[#081435]">
-                {displayName}
-              </p>
-              <p className="flex items-center gap-1 text-xs font-semibold text-[#FFB256]">
-                <Star size={12} className="fill-[#FFB256]" />
-                {points} POINTS
-              </p>
+              <ProfileMenu
+                user={currentUser}
+                onLogoutRequest={handleLogoutRequest}
+              />
             </div>
           </div>
         </div>
-      </div>
 
-      <NotificationsDropdown
-        isOpen={isNotificationsOpen}
-        onClose={() => setIsNotificationsOpen(false)}
-        anchorRef={notificationsButtonRef}
-        notifications={notifications}
-        onMarkRead={handleMarkRead}
-        onMarkAllRead={handleMarkAllRead}
+        <NotificationsDropdown
+          isOpen={isNotificationsOpen}
+          onClose={() =>
+            setIsNotificationsOpen(false)
+          }
+          anchorRef={notificationsButtonRef}
+          notifications={notifications}
+          onMarkRead={handleMarkRead}
+          onMarkAllRead={handleMarkAllRead}
+        />
+      </nav>
+
+      <div style={{ height: `${navHeight}px` }} />
+
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() =>
+          setIsLogoutModalOpen(false)
+        }
+        onConfirm={handleLogoutConfirm}
       />
-    </nav>
+    </>
   );
 }
 
