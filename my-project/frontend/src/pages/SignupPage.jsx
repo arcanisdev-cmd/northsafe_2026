@@ -11,6 +11,7 @@ const NAME_FILTER = /[^A-Za-zÀ-ÿ'\-\s]/g;
  
 function SignupPage() {
   const navigate = useNavigate();
+  const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
  
   const [formData, setFormData] = useState({
     firstName: "",
@@ -30,6 +31,8 @@ function SignupPage() {
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [barangayTouched, setBarangayTouched] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
  
   const requirements = [
     { label: "8+ characters", met: password.length >= 8 },
@@ -111,10 +114,48 @@ function SignupPage() {
  
   const labelClass = "font-inter text-[13px] font-medium text-[#1C1C1C]";
  
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!canSubmit) return;
-    navigate("/dashboard");
+    if (!canSubmit || isSubmitting) return;
+
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          middleName: formData.middleName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          barangay: formData.barangay,
+          companyWebsite: formData.companyWebsite,
+          password,
+          password_confirmation: confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setSubmitError(data?.message ?? "Unable to create your account.");
+        return;
+      }
+
+      localStorage.setItem("northsafe_token", data.token);
+      localStorage.setItem("northsafe_user", JSON.stringify(data.user));
+      navigate("/dashboard");
+    } catch {
+      setSubmitError("Unable to reach the authentication server.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
  
   return (
@@ -217,6 +258,10 @@ function SignupPage() {
                   <span className="font-inter font-black text-[12px] text-[#C2C2C2]">OR COMPLETE THE FORM</span>
                   <div className="flex-1 h-px bg-gray-200" />
                 </div>
+
+                {submitError && (
+                  <p className="mt-4 text-sm font-medium text-[#D30004]">{submitError}</p>
+                )}
  
                 <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }} aria-hidden="true">
                   <input
@@ -431,11 +476,11 @@ function SignupPage() {
                   </Link>
                   <button
                     type="submit"
-                    disabled={!canSubmit}
+                    disabled={!canSubmit || isSubmitting}
                     className="flex-1 h-11 rounded-[10px] text-white font-bold text-sm transition-all duration-150 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
                     style={{ backgroundColor: "#10245B", fontFamily: "Roboto, sans-serif" }}
                   >
-                    CREATE AN ACCOUNT
+                    {isSubmitting ? "CREATING..." : "CREATE AN ACCOUNT"}
                   </button>
                 </div>
               </form>

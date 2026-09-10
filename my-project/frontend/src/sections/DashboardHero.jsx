@@ -1,4 +1,5 @@
 import { AlertTriangle, MapPin, Compass, Camera, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
 import ndrrmcBg from "../assets/ndrrmc.png";
 import caloocanLogo from "../assets/caloocan-logo.png";
 import { typhoonAlert, hotlines } from "../components/data/MockDashboardData";
@@ -221,8 +222,8 @@ function DashboardHero() {
             {/* Exact spec: 314px each, 10px gap (324-314), radius 8.
                 Montserrat ExtraBold 14.14 for the label text. */}
             <div className="flex items-center gap-[10px]">
-              <button
-                type="button"
+              <Link
+                to="/report-hazard"
                 style={{
                   width: "314px",
                   height: "48px",
@@ -235,7 +236,7 @@ function DashboardHero() {
               >
                 <Camera size={18} />
                 Report a Hazard
-              </button>
+              </Link>
 
               <button
                 type="button"
@@ -264,6 +265,7 @@ function DashboardHero() {
       <button
         type="button"
         aria-label="Report a hazard"
+        onClick={() => window.location.assign("/report-hazard")}
         className="absolute bottom-6 right-6 z-10 w-14 h-14 rounded-full bg-[#D30004] text-white flex items-center justify-center shadow-lg hover:bg-[#b30003] transition-colors"
       >
         <Camera size={22} />

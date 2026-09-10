@@ -1,10 +1,8 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Star, User } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationsDropdown from "../components/NotificationsDropdown";
-import { currentUser } from "../components/data/MockDashboardData";
-
 const navLinks = [
   { label: "Home", path: "/dashboard" },
   { label: "Hazard Map", path: "/hazard-map" },
@@ -12,10 +10,65 @@ const navLinks = [
   { label: "Notifications", path: null },
 ];
 
+function readStoredUser() {
+  const rawUser = localStorage.getItem("northsafe_user") ?? sessionStorage.getItem("northsafe_user");
+
+  if (!rawUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawUser);
+  } catch {
+    return null;
+  }
+}
+
 function AuthNavbar() {
   const location = useLocation();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [authUser, setAuthUser] = useState(() => readStoredUser());
   const notificationsButtonRef = useRef(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
+
+    if (!token) {
+      return;
+    }
+
+    const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+    const controller = new AbortController();
+
+    fetch(`${apiBaseUrl}/api/me`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      signal: controller.signal,
+    })
+      .then((response) => response.json().then((data) => ({ response, data })))
+      .then(({ response, data }) => {
+        if (!response.ok || !data?.user) {
+          return;
+        }
+
+        setAuthUser(data.user);
+
+        if (localStorage.getItem("northsafe_token")) {
+          localStorage.setItem("northsafe_user", JSON.stringify(data.user));
+        } else {
+          sessionStorage.setItem("northsafe_user", JSON.stringify(data.user));
+        }
+      })
+      .catch(() => {
+        // Keep the stored profile if the backend is temporarily unavailable.
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const displayName = authUser?.fullName ?? authUser?.name ?? "NorthSafe User";
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white border-b border-gray-100">
@@ -63,10 +116,10 @@ function AuthNavbar() {
 
           <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
             <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
-              {currentUser.avatarUrl ? (
+              {authUser?.avatarUrl ? (
                 <img
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.name}
+                  src={authUser.avatarUrl}
+                  alt={displayName}
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
@@ -75,11 +128,11 @@ function AuthNavbar() {
             </div>
             <div>
               <p className="font-roboto font-bold text-sm uppercase leading-tight text-[#081435]">
-                {currentUser.name}
+                {displayName}
               </p>
               <p className="flex items-center gap-1 text-xs font-semibold text-[#FFB256]">
                 <Star size={12} className="fill-[#FFB256]" />
-                {currentUser.points} POINTS
+                0 POINTS
               </p>
             </div>
           </div>

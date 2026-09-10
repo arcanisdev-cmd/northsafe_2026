@@ -10,14 +10,48 @@ function SignInPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Backend integration point:
-    // await fetch("/api/login", { method: "POST", body: JSON.stringify({ email, password }) });
-    console.log("Signing in:", { email, password, rememberMe });
-    navigate("/dashboard");
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data?.message ?? "Unable to sign in.");
+        return;
+      }
+
+      if (rememberMe) {
+        localStorage.setItem("northsafe_token", data.token);
+        localStorage.setItem("northsafe_user", JSON.stringify(data.user));
+      } else {
+        sessionStorage.setItem("northsafe_token", data.token);
+        sessionStorage.setItem("northsafe_user", JSON.stringify(data.user));
+      }
+
+      navigate("/dashboard");
+    } catch {
+      setErrorMessage("Unable to reach the authentication server.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGoogleSignUp = () => {
@@ -124,6 +158,10 @@ function SignInPage() {
                   />
                 </div>
 
+                {errorMessage && (
+                  <p className="mt-4 text-sm font-medium text-[#D30004]">{errorMessage}</p>
+                )}
+
                 <div className="mt-4">
                   <label className={labelClass}>Password</label>
                   <div className="relative mt-1">
@@ -160,10 +198,11 @@ function SignInPage() {
 
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="w-full h-11 rounded-[10px] text-white font-inter font-bold text-sm mt-6 tracking-widest transition-transform duration-150 active:scale-[0.98]"
                   style={{ backgroundColor: "#081435" }}
                 >
-                  SIGN IN
+                  {isSubmitting ? "SIGNING IN..." : "SIGN IN"}
                 </button>
 
                 <p className="font-inter text-[13px] text-center text-gray-500 mt-4">
