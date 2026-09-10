@@ -62,6 +62,9 @@ function MyReportsPage() {
       <div className="max-w-[1532px] mx-auto">
         <AuthNavbar />
 
+        {/* No manual spacer needed here — AuthNavbar now measures its own
+            height and renders a matching spacer internally. */}
+
         <div style={{ backgroundColor: "#E8F4FF" }} className="px-[108px] py-8">
           {/* Stat cards */}
           <div className="flex gap-5">
@@ -179,7 +182,6 @@ function MyReportsPage() {
                     upvotes={report.upvotes}
                     downvotes={report.downvotes}
                     comments={report.comments}
-                    commentsList={report.commentsList}
                     imageSrc={report.imageSrc}
                     width="100%"
                     buttonColor="#081435"

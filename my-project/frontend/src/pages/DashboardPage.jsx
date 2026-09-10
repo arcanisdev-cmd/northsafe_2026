@@ -6,7 +6,7 @@ import Footer from "../layouts/Footer";
 
 function DashboardPage() {
   return (
-    <div className="overflow-x-hidden">
+    <div >
       <div className="max-w-[1532px] mx-auto">
         <AuthNavbar />
         <DashboardHero />

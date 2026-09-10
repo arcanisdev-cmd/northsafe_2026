@@ -1,47 +1,49 @@
-import { NOTIFICATION_TYPE_STYLES, formatTimeAgo } from "../utils/notificationSelectors";
+import { getNotificationIcon, formatTimeAgo } from "../utils/notificationSelectors";
 
 function NotificationItem({ notification, onView }) {
-  const style = NOTIFICATION_TYPE_STYLES[notification.type] || NOTIFICATION_TYPE_STYLES.comment;
+  const style = getNotificationIcon(notification.type);
   const Icon = style.icon;
+  const unread = !notification.read;
+
+  const handleActivate = () => onView(notification);
 
   return (
     <div
-      onClick={() => onView(notification)}
-      className="flex gap-3 px-5 py-4 hover:bg-gray-50 cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onClick={handleActivate}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleActivate();
+        }
+      }}
+      className={`flex gap-3 px-5 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors ${
+        unread ? "bg-[#F5FBFF] border-l-[3px] border-l-[#0BA6DF]" : "border-l-[3px] border-l-transparent"
+      }`}
     >
       <div className="relative shrink-0">
         <div
-          className="w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: style.color }}
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: style.softBg }}
         >
-          <Icon size={18} className="text-white" />
+          <Icon size={16} style={{ color: style.color }} />
         </div>
-        {!notification.read && (
+        {unread && (
           <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#D30004] border-2 border-white" />
         )}
       </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-inter font-bold text-sm" style={{ color: style.color }}>
-            {notification.title}
-          </p>
+          <p className="font-inter font-bold text-sm text-gray-900">{notification.title}</p>
           <span className="font-inter text-xs text-gray-400 shrink-0">
             {formatTimeAgo(notification.timestamp)}
           </span>
         </div>
-        <p className="font-inter text-xs text-gray-500 mt-1">{notification.subtitle}</p>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation(); // avoid double-firing with the row's own onClick
-            onView(notification);
-          }}
-          className="font-inter text-xs font-semibold underline mt-1.5"
-          style={{ color: style.color }}
-        >
-          View
-        </button>
+        <p className="font-inter text-xs text-gray-500 mt-1 line-clamp-2">
+          {notification.subtitle}
+        </p>
       </div>
     </div>
   );

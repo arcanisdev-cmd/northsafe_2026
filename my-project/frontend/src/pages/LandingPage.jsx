@@ -11,7 +11,7 @@ import Footer from "../layouts/Footer";
 
 function LandingPage() {
   return (
-    <div className="overflow-x-hidden">
+    <div >
       <div className="max-w-[1532px] mx-auto">
         <Navbar />
         <Hero />

@@ -1,10 +1,16 @@
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Star, User } from "lucide-react";
 import logo from "../assets/logo.png";
 import NotificationsDropdown from "../components/NotificationsDropdown";
-import { currentUser, notifications as allNotifications } from "../components/data/MockDashboardData";
-import { getMyNotifications, getUnreadCount } from "../utils/notificationSelectors";
+import {
+  currentUser,
+  notifications as allNotifications,
+} from "../components/data/MockDashboardData";
+import {
+  getMyNotifications,
+  getUnreadCount,
+} from "../utils/notificationSelectors";
 
 const navLinks = [
   { label: "Home", path: "/dashboard" },
@@ -17,109 +23,190 @@ function AuthNavbar() {
   const location = useLocation();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsButtonRef = useRef(null);
+  const navRef = useRef(null);
 
-  // Owned here (not inside the dropdown) so the unread badge below and the
-  // dropdown's own counts/list always agree — same pattern as
-  // currentUser.points being read from one place everywhere it's shown.
+  // Fallback height for first paint.
+  // The actual navbar height is measured below.
+  const [navHeight, setNavHeight] = useState(82);
+
+  useLayoutEffect(() => {
+    function measure() {
+      if (navRef.current) {
+        setNavHeight(navRef.current.getBoundingClientRect().height);
+      }
+    }
+
+    measure();
+
+    window.addEventListener("resize", measure);
+
+    return () => {
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
   const [notifications, setNotifications] = useState(() =>
     getMyNotifications(allNotifications, currentUser.id)
   );
-  const unreadCount = useMemo(() => getUnreadCount(notifications), [notifications]);
+
+  const unreadCount = useMemo(
+    () => getUnreadCount(notifications),
+    [notifications]
+  );
 
   const handleMarkRead = (id) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.id === id
+          ? { ...n, read: true }
+          : n
+      )
+    );
   };
 
   const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) =>
+      prev.map((n) => ({
+        ...n,
+        read: true,
+      }))
+    );
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
-      <div className="h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
-        <Link to="/dashboard">
-          <img src={logo} alt="NorthSafe logo" className="h-[64px] w-auto" />
-        </Link>
+    <>
+      {/* FIXED NAVBAR */}
+      <nav
+        ref={navRef}
+        className="fixed top-0 left-0 w-full z-[9999] bg-white border-b border-gray-100"
+      >
+        <div className="max-w-[1532px] mx-auto">
+          <div className="h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
 
-        <div className="hidden md:flex items-center gap-8">
-          <ul className="flex items-center gap-8">
-            {navLinks.map((link) => {
-              const isActive = link.path && location.pathname === link.path;
+            {/* LOGO */}
+            <Link to="/dashboard">
+              <img
+                src={logo}
+                alt="NorthSafe logo"
+                className="h-[64px] w-auto"
+              />
+            </Link>
 
-              if (link.path === null) {
-                return (
-                  <li key={link.label}>
-                    <button
-                      ref={notificationsButtonRef}
-                      type="button"
-                      onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                      className={`relative flex items-center gap-1.5 font-roboto font-bold text-base uppercase transition-colors ${
-                        isNotificationsOpen ? "text-[#0BA6DF]" : "text-[#081435] hover:text-[#0BA6DF]"
-                      }`}
-                    >
-                      {link.label}
-                      {unreadCount > 0 && (
-                        <span
-                          className="flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-white text-[10px] font-bold"
-                          style={{ backgroundColor: "#D30004" }}
+            {/* DESKTOP NAVIGATION */}
+            <div className="hidden md:flex items-center gap-8">
+              <ul className="flex items-center gap-8">
+                {navLinks.map((link) => {
+                  const isActive =
+                    link.path &&
+                    location.pathname === link.path;
+
+                  {/* NOTIFICATIONS */}
+                  if (link.path === null) {
+                    return (
+                      <li key={link.label}>
+                        <button
+                          ref={notificationsButtonRef}
+                          type="button"
+                          onClick={() =>
+                            setIsNotificationsOpen(
+                              !isNotificationsOpen
+                            )
+                          }
+                          className={`relative flex items-center gap-1.5 font-roboto font-bold text-base uppercase transition-colors ${
+                            isNotificationsOpen
+                              ? "text-[#0BA6DF]"
+                              : "text-[#081435] hover:text-[#0BA6DF]"
+                          }`}
                         >
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                );
-              }
+                          {link.label}
 
-              return (
-                <li key={link.label}>
-                  <Link
-                    to={link.path}
-                    className={`font-roboto font-bold text-base uppercase transition-colors ${
-                      isActive ? "text-[#0BA6DF]" : "text-[#081435] hover:text-[#0BA6DF]"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                          {unreadCount > 0 && (
+                            <span
+                              className="flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-white text-[10px] font-bold"
+                              style={{
+                                backgroundColor: "#D30004",
+                              }}
+                            >
+                              {unreadCount}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  }
 
-          <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
-              {currentUser.avatarUrl ? (
-                <img
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.name}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <User size={18} className="text-[#081435]" />
-              )}
-            </div>
-            <div>
-              <p className="font-roboto font-bold text-sm uppercase leading-tight text-[#081435]">
-                {currentUser.name}
-              </p>
-              <p className="flex items-center gap-1 text-xs font-semibold text-[#FFB256]">
-                <Star size={12} className="fill-[#FFB256]" />
-                {currentUser.points} POINTS
-              </p>
+                  {/* NORMAL NAVIGATION LINK */}
+                  return (
+                    <li key={link.label}>
+                      <Link
+                        to={link.path}
+                        className={`font-roboto font-bold text-base uppercase transition-colors ${
+                          isActive
+                            ? "text-[#0BA6DF]"
+                            : "text-[#081435] hover:text-[#0BA6DF]"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {/* USER */}
+              <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
+                  {currentUser.avatarUrl ? (
+                    <img
+                      src={currentUser.avatarUrl}
+                      alt={currentUser.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <User
+                      size={18}
+                      className="text-[#081435]"
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <p className="font-roboto font-bold text-sm uppercase leading-tight text-[#081435]">
+                    {currentUser.name}
+                  </p>
+
+                  <p className="flex items-center gap-1 text-xs font-semibold text-[#FFB256]">
+                    <Star
+                      size={12}
+                      className="fill-[#FFB256]"
+                    />
+
+                    {currentUser.points} POINTS
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <NotificationsDropdown
-        isOpen={isNotificationsOpen}
-        onClose={() => setIsNotificationsOpen(false)}
-        anchorRef={notificationsButtonRef}
-        notifications={notifications}
-        onMarkRead={handleMarkRead}
-        onMarkAllRead={handleMarkAllRead}
+        {/* NOTIFICATIONS DROPDOWN */}
+        <NotificationsDropdown
+          isOpen={isNotificationsOpen}
+          onClose={() => setIsNotificationsOpen(false)}
+          anchorRef={notificationsButtonRef}
+          notifications={notifications}
+          onMarkRead={handleMarkRead}
+          onMarkAllRead={handleMarkAllRead}
+        />
+      </nav>
+
+      {/* NAVBAR SPACER */}
+      <div
+        style={{
+          height: `${navHeight}px`,
+        }}
       />
-    </nav>
+    </>
   );
 }
 
