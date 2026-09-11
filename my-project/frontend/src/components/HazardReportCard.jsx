@@ -252,7 +252,7 @@ function HazardReportCard({
   return (
     <div
       onClick={onClick}
-      className="w-full max-w-[718px] rounded-2xl bg-white p-4 sm:p-6 cursor-pointer overflow-hidden"
+      className="w-full max-w-[718px] lg:max-w-none rounded-2xl bg-white p-4 sm:p-6 cursor-pointer overflow-hidden"
       style={{
         border: "0.25px solid #979797",
       }}

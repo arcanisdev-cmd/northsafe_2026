@@ -22,7 +22,7 @@ import {
   getDefaultMapFilters,
 } from "../utils/hazardFilters";
 
-// Rough center over North Caloocan (Camarin/Deparo/Llano area)
+// Rough center over North Caloocan
 const MAP_CENTER = [14.7569, 120.9967];
 const MAP_ZOOM = 14;
 
@@ -36,29 +36,28 @@ function HazardMapPage() {
   );
 
   return (
-    <div className="min-h-screen">
-      {/* Navbar handles its own height and spacer */}
+    <div className="min-h-screen overflow-x-hidden">
       <AuthNavbar />
 
-      <div className="max-w-[1532px] mx-auto">
+      <div className="w-full max-w-[1532px] mx-auto">
         {/* MAP CONTAINER */}
         <div
-          className="relative z-0 mx-auto"
-          style={{
-            width: "1531px",
-            height: "720px",
-          }}
+          className="
+            relative
+            z-0
+            w-full
+            mx-auto
+            h-[calc(100vh-80px)]
+            min-h-[550px]
+            max-h-[720px]
+          "
         >
           <MapContainer
             center={MAP_CENTER}
             zoom={MAP_ZOOM}
             zoomControl={false}
             attributionControl={false}
-            className="relative z-0"
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
+            className="relative z-0 w-full h-full"
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -66,7 +65,6 @@ function HazardMapPage() {
             />
 
             <AttributionControl position="bottomleft" />
-
             <ZoomControl position="topright" />
 
             {filteredReports.map((report) => (
@@ -82,14 +80,8 @@ function HazardMapPage() {
             ))}
           </MapContainer>
 
-          {/* SIDEBAR OVER THE MAP */}
-          <div
-            className="absolute z-[800]"
-            style={{
-              left: "0px",
-              top: "0px",
-            }}
-          >
+          {/* SIDEBAR */}
+          <div className="absolute inset-y-0 left-0 z-[800] max-w-full">
             <MapSidebar
               collapsed={sidebarCollapsed}
               onToggleCollapsed={() =>
@@ -100,7 +92,7 @@ function HazardMapPage() {
             />
           </div>
 
-          {/* MAP CONTROLS / LEGEND */}
+          {/* MAP LEGEND + LAYERS */}
           <div className="absolute inset-0 pointer-events-none z-[800]">
             <div className="pointer-events-auto">
               <AlertLevelLegend />
