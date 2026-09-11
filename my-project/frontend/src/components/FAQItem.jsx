@@ -2,29 +2,35 @@ import { ChevronDown } from "lucide-react";
 
 function FAQItem({ question, answer, isOpen, onClick }) {
   return (
-    <div
-      className="rounded-xl px-6 py-5 cursor-pointer bg-white"
-      style={{ border: "1px solid #E0E0E0" }}
-      onClick={onClick}
-    >
-      <div className="flex items-center justify-between gap-4">
-        <p className="font-inter font-semibold text-base" style={{ color: "#042545" }}>
+    <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-expanded={isOpen}
+        className="flex min-h-[64px] w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left transition-colors duration-150 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38ABFF] focus-visible:ring-inset sm:px-6 sm:py-5"
+      >
+        <span className="font-inter text-sm font-semibold leading-6 text-[#042545] sm:text-base">
           {question}
-        </p>
+        </span>
+
         <ChevronDown
           size={22}
-          className="shrink-0 transition-transform duration-300"
-          style={{ color: "#46B5FF", transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+          className={`shrink-0 text-[#46B5FF] transition-transform duration-300 ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
         />
-      </div>
+      </button>
 
       <div
-        className="overflow-hidden transition-all duration-300 ease-in-out"
-        style={{ maxHeight: isOpen ? "200px" : "0px" }}
+        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
       >
-        <p className="font-inter text-base mt-3" style={{ color: "#4E4E4E" }}>
-          {answer}
-        </p>
+        <div className="overflow-hidden">
+          <p className="px-5 pb-5 font-inter text-sm leading-6 text-[#4E4E4E] sm:px-6 sm:text-base">
+            {answer}
+          </p>
+        </div>
       </div>
     </div>
   );

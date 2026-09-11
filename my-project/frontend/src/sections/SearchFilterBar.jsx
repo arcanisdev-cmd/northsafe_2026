@@ -5,61 +5,44 @@ function SearchFilterBar() {
   const firstName = currentUser.name.split(" ")[0];
 
   return (
-    // Whole band: solid teal #479F9C (was an incorrect lavender before),
-    // fixed height 69px, 100px side padding matching the hero's convention.
-    // The greeting block and search+sort sit side-by-side in one row —
-    // stacking them as two separate rows wouldn't fit in 69px total height.
     <section
-      className="flex items-center justify-between"
-      style={{ backgroundColor: "#479F9C", height: "69px", paddingLeft: "100px", paddingRight: "100px" }}
+      className="flex w-full flex-col gap-4 px-5 py-4 sm:px-8 md:px-12 lg:h-[69px] lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:px-[100px] lg:py-0"
+      style={{ backgroundColor: "#479F9C" }}
     >
-      {/* Greeting — two tightly-stacked lines, both white per spec (the
-          previous dark navy colors would've been invisible on this teal
-          background). Pulling first name from the shared mock user data
-          instead of a hardcoded default prop. */}
-      {/* Single line — greeting and subtext run together with just a
-          space between them, not stacked as two separate lines. */}
-      <p className="whitespace-nowrap">
-        <span
-          className="text-white"
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: "20px", lineHeight: "20px" }}
-        >
+      <p className="min-w-0 text-center lg:text-left">
+        <span className="block font-inter text-[26px] font-extrabold leading-[30px] text-white lg:inline lg:text-[20px] lg:font-extrabold lg:leading-[20px]">
           Good morning, {firstName}!
-        </span>{" "}
-        <span
-          className="text-white ml-2"
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 500, fontSize: "16px", lineHeight: "20px" }}
-        >
+        </span>
+
+        <span className="mt-2 block font-inter text-[15px] font-medium leading-5 text-white lg:ml-2 lg:mt-0 lg:inline lg:text-[16px]">
           Stay updated with hazards happening around your community.
         </span>
       </p>
 
-      {/* Search bar (511x40, radius 20) + sort button, 15px gap between
-          them (526 - 511 = 15, per spec). Animation on the search bar is
-          intentionally on hold per your note. */}
-      <div className="flex items-center gap-[15px] shrink-0">
-        <div
-          className="flex items-center gap-3 bg-white px-5"
-          style={{ width: "511px", height: "40px", borderRadius: "20px" }}
-        >
-          <Search size={18} style={{ color: "#626262" }} className="shrink-0" />
+      <div className="flex w-full shrink-0 items-center gap-[15px] lg:w-auto">
+        <div className="group flex h-10 min-w-0 flex-1 items-center gap-3 rounded-[20px] bg-white px-5 shadow-sm transition-all duration-200 ease-out focus-within:shadow-[0_0_0_3px_rgba(255,255,255,0.25),0_4px_12px_rgba(8,20,53,0.12)] sm:px-5 lg:w-[511px] lg:flex-none">
+          <Search
+            size={18}
+            className="shrink-0 text-[#626262] transition-all duration-200 ease-out group-focus-within:scale-110 group-focus-within:text-[#479F9C]"
+          />
+
           <input
             type="text"
             placeholder="Search hazard reports or locations ..."
-            className="flex-1 text-sm bg-transparent outline-none min-w-0"
-            style={{ color: "#4E4E4E" }}
+            aria-label="Search hazard reports or locations"
+            className="min-w-0 flex-1 bg-transparent text-sm text-[#4E4E4E] outline-none placeholder:text-[#888888]"
           />
         </div>
 
-        {/* 30x30 per spec — SlidersHorizontal sized to sit comfortably
-            inside that box. */}
         <button
           type="button"
-          className="flex items-center justify-center bg-white shrink-0"
-          style={{ width: "30px", height: "30px", borderRadius: "8px" }}
+          className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] bg-white transition-all duration-150 hover:bg-gray-100 hover:shadow-sm active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#479F9C]"
           aria-label="More filters"
         >
-          <SlidersHorizontal size={18} style={{ color: "#292828" }} />
+          <SlidersHorizontal
+            size={18}
+            className="text-[#292828]"
+          />
         </button>
       </div>
     </section>

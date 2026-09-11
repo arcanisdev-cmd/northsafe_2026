@@ -14,7 +14,8 @@ function SignInPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const apiBaseUrl = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+  const apiBaseUrl =
+    import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,70 +41,87 @@ function SignInPage() {
 
       if (rememberMe) {
         localStorage.setItem("northsafe_token", data.token);
-        localStorage.setItem("northsafe_user", JSON.stringify(data.user));
+        localStorage.setItem(
+          "northsafe_user",
+          JSON.stringify(data.user)
+        );
       } else {
-        sessionStorage.setItem("northsafe_token", data.token);
-        sessionStorage.setItem("northsafe_user", JSON.stringify(data.user));
+        sessionStorage.setItem(
+          "northsafe_token",
+          data.token
+        );
+        sessionStorage.setItem(
+          "northsafe_user",
+          JSON.stringify(data.user)
+        );
       }
 
       navigate("/dashboard");
     } catch {
-      setErrorMessage("Unable to reach the authentication server.");
+      setErrorMessage(
+        "Unable to reach the authentication server."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleGoogleSignUp = () => {
-    // Backend integration point: trigger Google OAuth flow
     console.log("Google sign up clicked");
   };
 
-  // Same label/input scale used on the signup form, so both pages read
-  // consistently.
-  const labelClass = "font-inter text-[13px] font-medium text-[#1C1C1C]";
+  const labelClass =
+    "font-inter text-[13px] font-medium text-[#1C1C1C]";
+
   const inputClass =
-    "w-full h-11 mt-1 px-4 border border-gray-300 rounded-[5px] text-[15px] outline-none transition-shadow duration-150 focus:ring-2 focus:ring-teal";
+    "mt-1 h-11 w-full rounded-[5px] border border-gray-300 px-4 text-[15px] outline-none transition-shadow duration-150 focus:ring-2 focus:ring-teal";
 
   return (
-    <div className="overflow-x-hidden min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       <LoginNavbar />
 
-      {/* Same responsive container/panel structure as SignupPage — fixed
-          pixel widths and a custom one-off SVG shape were replaced so both
-          pages share the exact same layout, breakpoints, and torn-edge art. */}
-      <div className="max-w-[1532px] mx-auto lg:relative lg:h-[793px]">
-        {/* Left — Hotlines panel over photo, identical structure to SignupPage */}
-        <div className="relative w-full h-[560px] overflow-hidden lg:h-auto lg:absolute lg:inset-y-0 lg:left-0 lg:w-[68.28%]">
-          <img src={ndrrmcBg} alt="NDRRMC operations center" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="mx-auto w-full max-w-[1532px] lg:relative lg:h-[793px]">
+        {/* Emergency Hotlines */}
+        <div className="relative min-h-[520px] w-full overflow-hidden sm:min-h-[560px] lg:absolute lg:inset-y-0 lg:left-0 lg:h-auto lg:w-[68.28%]">
+          <img
+            src={ndrrmcBg}
+            alt="NDRRMC operations center"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+
           <div className="absolute inset-0 bg-navy/80" />
 
-          {/* lg:-translate-x-[52px] matches the offset tuned on the signup
-              page, since this uses the identical torn-edge shape and would
-              otherwise look shifted right the same way that one did. */}
-          <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 py-8 gap-4 lg:-translate-x-[52px]">
+          <div className="relative z-10 flex h-full flex-col items-center justify-center gap-4 px-5 py-10 sm:px-8 sm:py-12 lg:-translate-x-[52px] lg:px-6 lg:py-8">
             <h2
-              className="text-[36px] leading-none text-[#D30004] text-center tracking-wide"
-              style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700 }}
+              className="text-center text-[28px] font-bold leading-none tracking-wide text-[#D30004] sm:text-[32px] lg:text-[36px]"
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+              }}
             >
               EMERGENCY HOTLINES
             </h2>
+
             <p
-              className="text-[13px] text-white -mt-2"
-              style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 500 }}
+              className="-mt-2 text-[12px] text-white sm:text-[13px]"
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 500,
+              }}
             >
               Automatic Dials
             </p>
+
             <div className="w-full max-w-[566px]">
               <HotlinesPanel />
             </div>
           </div>
         </div>
 
-        {/* Right — sign-in form panel, same torn-edge shape and svg paths as SignupPage */}
-        <div className="relative w-full bg-white lg:absolute lg:inset-y-0 lg:left-[56.2%] lg:w-[43.8%] lg:z-10 lg:bg-transparent">
+        {/* Sign In Form */}
+        <div className="relative w-full bg-white lg:absolute lg:inset-y-0 lg:left-[56.2%] lg:z-10 lg:w-[43.8%] lg:bg-transparent">
+          {/* Torn edge - desktop only */}
           <svg
-            className="hidden lg:block absolute inset-0 w-full h-full"
+            className="absolute inset-0 hidden h-full w-full lg:block"
             viewBox="0 0 671 711"
             preserveAspectRatio="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -114,6 +132,7 @@ function SignInPage() {
               fill="white"
               d="M24.2205 0H335.497V711H31.6959L21.5293 668.414L16.446 663.6L20.0342 640.641L25.1175 618.237L30.2008 611.016L18.5391 590.278L20.0342 574.725L7.77445 532.88L21.2303 514.179L16.1469 501.958L20.3332 487.702L16.1469 465.668V444.375L20.4827 422.249L30.2008 411.973L34.3871 406.603L37.6762 396.975L38.5733 376.608L31.3969 355.13L30.4998 310.739L26.0146 288.658L35.2841 278.475L30.4998 265.144L35.2841 222.004L33.49 202.931L26.9116 194.599L10.4656 198.304L10.7646 181.456L7.32594 171.176L8.07351 156.641L3.28919 145.717L3.28919 136.83L5.08333 129.424L10.1666 119.61V116.281L0 109.241L5.08333 103.688L1.7941 93.1354L5.68136 89.0584L1.7941 84.2479L10.1666 77.025L7.40067 69.8492L8.07351 64.0652L14.9509 57.9521L18.2401 48.6979L23.9214 24.6264L21.5293 12.9598L24.2205 0Z"
             />
+
             <path
               fillRule="evenodd"
               clipRule="evenodd"
@@ -122,92 +141,160 @@ function SignInPage() {
             />
           </svg>
 
-          <div className="relative z-10 h-full flex items-center justify-center px-6 py-8 lg:py-0">
-            <div className="w-full max-w-[500px] mx-auto">
-              <form onSubmit={handleSubmit} className="w-full">
-                <p className="font-inter font-semibold text-lg text-center" style={{ color: "#0BA6DF" }}>
+          <div className="relative z-10 flex min-h-full items-center justify-center px-5 py-10 sm:px-8 sm:py-12 lg:h-full lg:px-6 lg:py-0">
+            <div className="mx-auto w-full max-w-[500px]">
+              <form
+                onSubmit={handleSubmit}
+                className="w-full"
+              >
+                <p
+                  className="text-center font-inter text-base font-semibold sm:text-lg"
+                  style={{ color: "#0BA6DF" }}
+                >
                   Welcome back to
                 </p>
-                <h1 className="font-inter font-black text-4xl text-center" style={{ color: "#081435" }}>
+
+                <h1
+                  className="text-center font-inter text-[32px] font-black sm:text-4xl"
+                  style={{ color: "#081435" }}
+                >
                   NORTHSAFE
                 </h1>
 
                 <button
                   type="button"
                   onClick={handleGoogleSignUp}
-                  className="w-full h-[46px] mt-6 flex items-center justify-center gap-2 border border-[#969696] rounded-lg text-[15px] font-semibold shadow-sm transition-transform duration-150 active:scale-[0.99]"
+                  className="mt-6 flex h-[46px] w-full items-center justify-center gap-2 rounded-lg border border-[#969696] text-[15px] font-semibold shadow-sm transition-transform duration-150 active:scale-[0.99]"
                 >
-                  {/* Same Google mark used on the signup page's button, for consistency */}
-                  <svg width="18" height="18" viewBox="0 0 18 18">
-                    <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z" />
-                    <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 009 18z" />
-                    <path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 013.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 000 9c0 1.45.35 2.83.96 4.05l3.01-2.33z" />
-                    <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                  >
+                    <path
+                      fill="#4285F4"
+                      d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 009 18z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M3.97 10.72A5.4 5.4 0 013.68 9c0-.6.1-1.18.29-1.72V4.95H.96A9 9 0 000 9c0 1.45.35 2.83.96 4.05l3.01-2.33z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"
+                    />
                   </svg>
+
                   Sign Up with Google
                 </button>
 
+                {/* Email */}
                 <div className="mt-5">
-                  <label className={labelClass}>Email Address</label>
+                  <label className={labelClass}>
+                    Email Address
+                  </label>
+
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) =>
+                      setEmail(e.target.value)
+                    }
                     placeholder="example.you@gmail.com"
                     className={inputClass}
                   />
                 </div>
 
                 {errorMessage && (
-                  <p className="mt-4 text-sm font-medium text-[#D30004]">{errorMessage}</p>
+                  <p className="mt-4 text-sm font-medium text-[#D30004]">
+                    {errorMessage}
+                  </p>
                 )}
 
+                {/* Password */}
                 <div className="mt-4">
-                  <label className={labelClass}>Password</label>
+                  <label className={labelClass}>
+                    Password
+                  </label>
+
                   <div className="relative mt-1">
                     <input
-                      type={showPassword ? "text" : "password"}
+                      type={
+                        showPassword
+                          ? "text"
+                          : "password"
+                      }
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-11 px-4 pr-11 border border-gray-300 rounded-[5px] text-[15px] outline-none transition-shadow duration-150 focus:ring-2 focus:ring-teal"
+                      onChange={(e) =>
+                        setPassword(e.target.value)
+                      }
+                      className="h-11 w-full rounded-[5px] border border-gray-300 px-4 pr-11 text-[15px] outline-none transition-shadow duration-150 focus:ring-2 focus:ring-teal"
                     />
+
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() =>
+                        setShowPassword(!showPassword)
+                      }
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-4">
+                {/* Remember / Forgot */}
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <label className="flex items-center gap-2 text-[13px] text-gray-600">
                     <input
                       type="checkbox"
                       checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-3.5 h-3.5"
+                      onChange={(e) =>
+                        setRememberMe(e.target.checked)
+                      }
+                      className="h-4 w-4"
                     />
+
                     Remember me
                   </label>
-                  <Link to="/forgot-password" className="text-[13px] font-semibold" style={{ color: "#0BA6DF" }}>
+
+                  <Link
+                    to="/forgot-password"
+                    className="text-[13px] font-semibold"
+                    style={{ color: "#0BA6DF" }}
+                  >
                     Forgot Password?
                   </Link>
                 </div>
 
+                {/* Submit */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full h-11 rounded-[10px] text-white font-inter font-bold text-sm mt-6 tracking-widest transition-transform duration-150 active:scale-[0.98]"
+                  className="mt-6 h-11 w-full rounded-[10px] font-inter text-sm font-bold tracking-widest text-white transition-transform duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                   style={{ backgroundColor: "#081435" }}
                 >
-                  {isSubmitting ? "SIGNING IN..." : "SIGN IN"}
+                  {isSubmitting
+                    ? "SIGNING IN..."
+                    : "SIGN IN"}
                 </button>
 
-                <p className="font-inter text-[13px] text-center text-gray-500 mt-4">
+                {/* Sign Up */}
+                <p className="mt-4 text-center font-inter text-[13px] text-gray-500">
                   Don't have an account?{" "}
-                  <Link to="/signup" className="font-bold underline" style={{ color: "#0BA6DF" }}>
+                  <Link
+                    to="/signup"
+                    className="font-bold underline"
+                    style={{ color: "#0BA6DF" }}
+                  >
                     SIGN UP
                   </Link>
                 </p>

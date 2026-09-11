@@ -13,69 +13,66 @@ function EmergencyHotlines() {
   return (
     <section
       id="hotlines"
-      className="flex px-[100px] py-[100px] gap-[106px] items-stretch scroll-mt-[100px]"
+      className="scroll-mt-[100px] px-5 py-16 sm:px-8 sm:py-20 md:px-12 md:py-24 lg:flex lg:items-stretch lg:gap-[106px] lg:px-[100px] lg:py-[100px]"
     >
       {/* Left Side */}
-      <div style={{ width: "594px" }} className="shrink-0">
+      <div className="w-full shrink-0 lg:w-[594px]">
         <div className="flex flex-col items-center">
           <img
             src={caloocanLogo}
             alt="Caloocan"
-            className="max-w-full h-auto"
+            className="h-auto max-w-full"
           />
 
           <img
             src={emergencyHotlinesHeading}
             alt="Emergency Hotlines"
-            className="max-w-full h-auto mt-[29px]"
+            className="mt-6 h-auto max-w-full sm:mt-7"
           />
         </div>
 
-        <p
-          className="font-inter font-semibold text-base text-center mt-[29px]"
-          style={{ color: "#4E4E4E" }}
-        >
+        <p className="mt-6 text-center font-inter text-sm font-semibold leading-6 text-[#4E4E4E] sm:mt-7 sm:text-base">
           For direct assistance, please contact the North Caloocan City DRRM
           Office using the numbers below.
         </p>
 
         {/* Phone Numbers */}
-        <div className="flex flex-col gap-[30px] mt-[30px]">
+        <div className="mt-7 flex flex-col gap-4 sm:gap-5 md:gap-6 lg:gap-[30px]">
           {phoneNumbers.map(function (phone) {
+            const dialNumber = phone.number.replace(/[^\d+]/g, "");
+
             return (
               <a
                 key={phone.number}
-                href={"tel:" + phone.number.replace(/[^\d+]/g, "")}
-                className="flex items-center justify-center gap-3 font-inter font-bold text-2xl hover:opacity-80 transition-opacity"
+                href={`tel:${dialNumber}`}
+                aria-label={`Call ${phone.number}`}
+                className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-lg px-4 py-2 font-inter text-xl font-bold transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0BA6DF] focus-visible:ring-offset-2 active:scale-[0.99] sm:text-2xl"
                 style={{ color: phone.color }}
               >
-                <Phone size={24} />
-                {phone.number}
+                <Phone
+                  size={22}
+                  className="shrink-0 sm:h-6 sm:w-6"
+                />
+
+                <span>{phone.number}</span>
               </a>
             );
           })}
         </div>
 
         {/* Office Information */}
-        <div className="flex flex-col gap-[14px] mt-[30px] items-center">
-          <p
-            className="font-inter font-semibold text-sm text-center"
-            style={{ color: "#4E4E4E" }}
-          >
+        <div className="mt-7 flex flex-col items-center gap-3 sm:mt-[30px] sm:gap-[14px]">
+          <p className="text-center font-inter text-sm font-semibold leading-5 text-[#4E4E4E]">
             North Caloocan City Disaster Risk Reduction and Management Office
           </p>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-start justify-center gap-2">
             <MapPin
               size={18}
-              className="shrink-0"
-              style={{ color: "#22A559" }}
+              className="mt-0.5 shrink-0 text-[#22A559]"
             />
 
-            <p
-              className="font-inter text-sm"
-              style={{ color: "#4E4E4E" }}
-            >
+            <p className="max-w-[520px] text-center font-inter text-sm leading-5 text-[#4E4E4E]">
               Zapote Rd, Barangay 177, Novaliches, Caloocan, 1400 Metro Manila
             </p>
           </div>
@@ -83,14 +80,11 @@ function EmergencyHotlines() {
       </div>
 
       {/* Right Side - Map */}
-      <div
-        className="shrink-0 self-stretch"
-        style={{ width: "616.29px" }}
-      >
+      <div className="mt-10 h-[360px] w-full shrink-0 overflow-hidden rounded-xl sm:h-[420px] md:h-[480px] lg:mt-0 lg:h-auto lg:w-[616.29px] lg:rounded-none">
         <img
           src={hotlinesMap}
           alt="North Caloocan DRRM Office location"
-          className="w-full h-full object-cover"
+          className="h-full w-full object-cover"
         />
       </div>
     </section>
