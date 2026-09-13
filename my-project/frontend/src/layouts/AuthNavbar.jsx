@@ -3,11 +3,9 @@ import {
   useMemo,
   useRef,
   useState,
+  useEffect,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useRef, useState, useMemo, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Star, User } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
 import NotificationsDropdown from "../components/NotificationsDropdown";
 import LogoutConfirmModal from "../components/LogoutConfirmModal";
@@ -29,8 +27,22 @@ function clearStoredAuth() {
   sessionStorage.removeItem("northsafe_user");
 }
 
+function normalizeNavbarUser(user) {
+  if (!user) {
+    return null;
+  }
+
+  return {
+    ...user,
+    name: user.name ?? user.fullName ?? "NorthSafe User",
+    points: user.points ?? user.rewardPoints ?? 0,
+    avatarUrl: user.avatarUrl ?? user.profilePicture ?? null,
+  };
+}
+
 function AuthNavbar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isNotificationsOpen, setIsNotificationsOpen] =
     useState(false);
@@ -38,6 +50,21 @@ function AuthNavbar() {
     useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [navHeight, setNavHeight] = useState(82);
+  const [authUser, setAuthUser] = useState(() => {
+    const storedUser =
+      localStorage.getItem("northsafe_user") ??
+      sessionStorage.getItem("northsafe_user");
+
+    if (!storedUser) {
+      return currentUser;
+    }
+
+    try {
+      return normalizeNavbarUser(JSON.parse(storedUser)) ?? currentUser;
+    } catch {
+      return currentUser;
+    }
+  });
 
   const notificationsButtonRef = useRef(null);
 
@@ -51,13 +78,7 @@ function AuthNavbar() {
   );
   const unreadCount = useMemo(() => getUnreadCount(notifications), [notifications]);
 
-  const handleMarkRead = (id) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-  };
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
 
   useEffect(() => {
     const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
@@ -95,12 +116,13 @@ function AuthNavbar() {
           return;
         }
 
-        setAuthUser(data.user);
+        const navbarUser = normalizeNavbarUser(data.user);
+        setAuthUser(navbarUser);
 
         if (localStorage.getItem("northsafe_token")) {
-          localStorage.setItem("northsafe_user", JSON.stringify(data.user));
+          localStorage.setItem("northsafe_user", JSON.stringify(navbarUser));
         } else {
-          sessionStorage.setItem("northsafe_user", JSON.stringify(data.user));
+          sessionStorage.setItem("northsafe_user", JSON.stringify(navbarUser));
         }
       })
       .catch(() => {
@@ -144,17 +166,7 @@ function AuthNavbar() {
       window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const [notifications, setNotifications] = useState(() =>
-    getMyNotifications(
-      allNotifications,
-      currentUser.id
-    )
-  );
 
-  const unreadCount = useMemo(
-    () => getUnreadCount(notifications),
-    [notifications]
-  );
 
   function handleMarkRead(id) {
     setNotifications((prev) =>
@@ -182,9 +194,24 @@ function AuthNavbar() {
 
   function handleLogoutConfirm() {
     setIsLogoutModalOpen(false);
-    navigate("/signin");
+    const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
+    const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
+
+    const finishLogout = () => {
+      clearStoredAuth();
+      navigate("/signin", { replace: true });
+    };
+
+    if (!token) {
+      finishLogout();
+      return;
+    }
+
+    fetch(`${apiBaseUrl}/api/logout`, {
+      method: "POST",
+      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+    }).finally(finishLogout);
   }
-  const points = authUser?.rewardPoints ?? authUser?.points ?? 0;
 
   return (
     <>
@@ -222,7 +249,7 @@ function AuthNavbar() {
               />
 
               <ProfileMenu
-                user={currentUser}
+                user={authUser}
                 onLogoutRequest={handleLogoutRequest}
               />
             </div>

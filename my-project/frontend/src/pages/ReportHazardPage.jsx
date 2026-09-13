@@ -42,6 +42,51 @@ async function reverseGeocodeLocation(latitude, longitude) {
   return shortAddress || data?.display_name || "Current location, Caloocan City";
 }
 
+async function prepareImage(file) {
+  const sourceUrl = URL.createObjectURL(file);
+  const image = await new Promise((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = () => reject(new Error("Unable to decode the selected image."));
+    element.src = sourceUrl;
+  });
+  const maxDimension = 1600;
+  const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+  canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+  URL.revokeObjectURL(sourceUrl);
+
+  let blob = null;
+  for (const quality of [0.78, 0.65, 0.52, 0.4]) {
+    blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", quality);
+    });
+
+    if (blob && blob.size <= 1.5 * 1024 * 1024) {
+      break;
+    }
+  }
+
+  if (!blob) {
+    throw new Error("Unable to prepare the selected image.");
+  }
+
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Unable to read the selected image."));
+    reader.readAsDataURL(blob);
+  });
+
+  return {
+    dataUrl,
+    name: `${file.name.replace(/\.[^.]+$/, "") || "report-image"}.jpg`,
+    mime: "image/jpeg",
+  };
+}
+
 function ReportHazardPage() {
   const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
   const [photoFile, setPhotoFile] = useState(null);
@@ -135,13 +180,7 @@ function ReportHazardPage() {
     setSubmitError("");
 
     try {
-      const imageDataUrl = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(new Error("Unable to read the selected image."));
-        reader.readAsDataURL(photoFile);
-      });
+      const preparedImage = await prepareImage(photoFile);
 
       const response = await fetch(`${apiBaseUrl}/api/reports`, {
         method: "POST",
@@ -151,20 +190,27 @@ function ReportHazardPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title,
+          title: title.trim(),
           hazard_type: category,
-          description,
+          description: description.trim(),
           latitude: selectedLocation.latitude,
           longitude: selectedLocation.longitude,
-          location_name: address,
+          location_name: address.trim(),
           barangay,
-          image_data: imageDataUrl,
-          image_name: photoFile.name,
-          image_mime: photoFile.type,
+          image_data: preparedImage.dataUrl,
+          image_name: preparedImage.name,
+          image_mime: preparedImage.mime,
         }),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data = {};
+
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        data = { message: responseText };
+      }
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -174,13 +220,17 @@ function ReportHazardPage() {
         }
 
         const validationErrors = data?.errors ? Object.values(data.errors).flat().join(" ") : "";
-        setSubmitError(data?.message ?? validationErrors ?? "Unable to submit your report.");
+        setSubmitError(
+          data?.message ??
+            validationErrors ??
+            `Upload failed with status ${response.status}.`
+        );
         return;
       }
 
       setShowSuccessModal(true);
-    } catch {
-      setSubmitError("Unable to reach the report service.");
+    } catch (error) {
+      setSubmitError(error.message || "Unable to submit your report.");
     } finally {
       setIsSubmitting(false);
     }

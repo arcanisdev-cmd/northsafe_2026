@@ -7,11 +7,27 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
+    public function profileImage(string $path)
+    {
+        if ($path === '' || str_contains($path, '..')) {
+            abort(404);
+        }
+
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($path) || ! Str::startsWith($path, 'profile-images/')) {
+            abort(404);
+        }
+
+        return response()->file($disk->path($path));
+    }
+
     public function register(Request $request): JsonResponse
     {
         $payload = $this->validatedPayload($request);
@@ -81,6 +97,83 @@ class AuthController extends Controller
         return response()->json([
             'user' => $this->profile($request->user()),
         ]);
+    }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $phone = $this->normalizePhone($request->input('phone'));
+        $validator = Validator::make(array_merge($request->all(), [
+            'phone' => $phone,
+        ]), [
+            'firstName' => ['required', 'string', 'max:100'],
+            'middleName' => ['required', 'string', 'max:100'],
+            'lastName' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'phone' => ['required', 'regex:/^9\d{9}$/'],
+            'barangay' => ['required', 'string', 'max:255'],
+            'houseNumber' => ['required', 'string', 'max:100'],
+            'street' => ['required', 'string', 'max:255'],
+            'zipCode' => ['required', 'string', 'max:20'],
+            'profilePicture' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
+        $profilePicture = $user->profile_picture;
+
+        if ($request->hasFile('profilePicture')) {
+            $profilePicture = '/storage/'. $request->file('profilePicture')->store('profile-images', 'public');
+        }
+
+        $user->forceFill([
+            'first_name' => $data['firstName'],
+            'middle_name' => $data['middleName'],
+            'last_name' => $data['lastName'],
+            'name' => trim($data['firstName'].' '.$data['middleName'].' '.$data['lastName']),
+            'email' => Str::lower($data['email']),
+            'phone' => $phone,
+            'barangay' => $data['barangay'],
+            'house_number' => $data['houseNumber'],
+            'street' => $data['street'],
+            'zip_code' => $data['zipCode'],
+            'profile_picture' => $profilePicture,
+        ])->save();
+
+        return response()->json(['user' => $this->profile($user->fresh())]);
+    }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'currentPassword' => ['required', 'string'],
+            'newPassword' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user();
+        if (! Hash::check($request->string('currentPassword')->toString(), $user->password_hash ?? $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect.'], 422);
+        }
+
+        $user->forceFill([
+            'password' => $request->string('newPassword')->toString(),
+            'password_hash' => Hash::make($request->string('newPassword')->toString()),
+        ])->save();
+
+        return response()->json(['message' => 'Password changed successfully.']);
     }
 
     public function logout(Request $request): JsonResponse
@@ -165,6 +258,7 @@ class AuthController extends Controller
 
         return [
             'id' => $user->id,
+            'role' => $user->role ?? 'user',
             'firstName' => $user->first_name,
             'middleName' => $user->middle_name,
             'lastName' => $user->last_name,
@@ -172,10 +266,32 @@ class AuthController extends Controller
             'email' => $user->email,
             'phone' => $user->phone,
             'barangay' => $user->barangay,
+            'houseNumber' => $user->house_number,
+            'street' => $user->street,
+            'zipCode' => $user->zip_code,
+            'profilePicture' => $this->presentProfilePicture($user->profile_picture),
             'companyWebsite' => $user->company_website,
             'rewardPoints' => (int) ($user->reward_points ?? 0),
             'prepaidLoad' => 0,
             'createdAt' => $user->created_at?->toISOString(),
         ];
+    }
+
+    private function presentProfilePicture(?string $picture): ?string
+    {
+        if (! $picture) {
+            return null;
+        }
+
+        $path = parse_url($picture, PHP_URL_PATH) ?: $picture;
+
+        if (! Str::startsWith($path, '/storage/')) {
+            return $picture;
+        }
+
+        return request()->getSchemeAndHttpHost().'/api/profile-images/'.ltrim(
+            Str::after($path, '/storage/'),
+            '/'
+        );
     }
 }

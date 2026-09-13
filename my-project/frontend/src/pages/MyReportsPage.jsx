@@ -7,6 +7,7 @@ import Footer from "../layouts/Footer";
 import StatCard from "../components/StatCard";
 import HazardReportCard from "../components/HazardReportCard";
 import ReportStatusTimeline from "../components/ReportStatusTimeline";
+import { resolveImageUrl } from "../utils/imageUrls";
 
 import { hazardTypes, barangayOptions, reportStatuses } from "../components/data/MockDashboardData";
 import {
@@ -75,7 +76,7 @@ function deriveAlertLevel(report) {
   return "blue";
 }
 
-function normalizeReport(report) {
+function normalizeReport(report, apiBaseUrl) {
   const createdAt = report.createdAt ?? report.created_at ?? new Date().toISOString();
   const createdDate = new Date(createdAt);
   const statusHistory = Array.isArray(report.statusHistory)
@@ -104,7 +105,7 @@ function normalizeReport(report) {
     upvotes: report.upvotes ?? 0,
     downvotes: report.downvotes ?? 0,
     comments: report.comments ?? 0,
-    imageSrc: report.imageSrc ?? report.imageUrl ?? null,
+    imageSrc: resolveImageUrl(report.imageSrc ?? report.imageUrl ?? report.image_url, apiBaseUrl),
     status: report.status ?? "Pending",
     createdAt: report.createdAt ?? createdDate.toISOString(),
   };
@@ -159,7 +160,9 @@ function MyReportsPage() {
           return;
         }
 
-        const normalizedReports = (data?.reports ?? []).map(normalizeReport);
+        const normalizedReports = (data?.reports ?? []).map((report) =>
+          normalizeReport(report, apiBaseUrl)
+        );
         setMyReports(normalizedReports);
         setSelectedReport(getDefaultSelectedReport(normalizedReports));
       } catch (error) {

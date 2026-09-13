@@ -14,6 +14,21 @@ use Illuminate\Support\Str;
 
 class HazardReportController extends Controller
 {
+    public function image(string $path)
+    {
+        if ($path === '' || str_contains($path, '..')) {
+            abort(404);
+        }
+
+        $disk = Storage::disk('public');
+
+        if (! $disk->exists($path)) {
+            abort(404);
+        }
+
+        return response()->file($disk->path($path));
+    }
+
     public function index(Request $request): JsonResponse
     {
         $reports = HazardReport::query()
@@ -47,6 +62,105 @@ class HazardReportController extends Controller
         return response()->json([
             'reports' => $reports,
         ]);
+    }
+
+    public function adminAnalytics(): JsonResponse
+    {
+        $reports = HazardReport::query()->get(['status', 'severity', 'hazard_type', 'barangay']);
+        $countBy = static function (string $field) use ($reports): array {
+            $outputKey = $field === 'hazard_type' ? 'category' : $field;
+
+            return $reports
+                ->groupBy($field)
+                ->map(fn ($group, $value) => [
+                    $outputKey => $value ?: 'unknown',
+                    'count' => $group->count(),
+                ])
+                ->sortByDesc('count')
+                ->values()
+                ->all();
+        };
+
+        $statusCounts = $reports->groupBy(fn ($report) => strtolower((string) $report->status));
+
+        return response()->json([
+            'total_reports' => $reports->count(),
+            'pending_reports' => $statusCounts->get('pending', collect())->count(),
+            'in_progress_reports' => $statusCounts->get('in_progress', collect())->count(),
+            'resolved_reports' => $statusCounts->get('resolved', collect())->count(),
+            'reports_by_category' => $countBy('hazard_type'),
+            'reports_by_severity' => $countBy('severity'),
+            'reports_by_barangay' => $countBy('barangay'),
+        ]);
+    }
+
+    public function adminReports(Request $request): JsonResponse
+    {
+        $reports = HazardReport::query()
+            ->with(['user:id,name', 'images' => fn ($query) => $query->latest('uploaded_at')])
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->input('status')))
+            ->when($request->filled('severity'), fn ($query) => $query->where('severity', $request->input('severity')))
+            ->latest()
+            ->paginate((int) $request->input('per_page', 15))
+            ->through(function (HazardReport $report): array {
+                $imageUrl = $this->presentImageUrl($report->images->first()?->image_url);
+                $imagePath = $report->images->first()?->image_url;
+
+                return [
+                    ...$report->toArray(),
+                    'address' => $report->location_name,
+                    'category' => $report->hazard_type,
+                    'image_path' => $imagePath,
+                    'image_url' => $imageUrl,
+                    'upvotes' => 0,
+                    'downvotes' => 0,
+                ];
+            });
+
+        return response()->json($reports);
+    }
+
+    public function updateAdminReport(Request $request, HazardReport $report): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => ['nullable', 'in:pending,verified,in_progress,resolved,rejected'],
+            'severity' => ['nullable', 'in:low,medium,high,critical'],
+            'is_pinned' => ['nullable', 'boolean'],
+            'rejection_reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $validator->validated();
+        $oldStatus = $report->status;
+
+        $report->forceFill(array_filter([
+            'status' => $data['status'] ?? null,
+            'severity' => $data['severity'] ?? null,
+            'is_pinned' => $data['is_pinned'] ?? null,
+            'rejection_reason' => $data['rejection_reason'] ?? null,
+            'verified_by' => ($data['status'] ?? null) === 'verified' ? $request->user()->id : null,
+            'verified_at' => ($data['status'] ?? null) === 'verified' ? now() : null,
+            'resolved_at' => ($data['status'] ?? null) === 'resolved' ? now() : null,
+        ], static fn ($value) => $value !== null))->save();
+
+        if (isset($data['status']) && $oldStatus !== $data['status']) {
+            ReportStatusHistory::create([
+                'report_id' => $report->id,
+                'changed_by' => $request->user()->id,
+                'old_status' => $oldStatus,
+                'new_status' => $data['status'],
+                'remarks' => $data['rejection_reason'] ?? null,
+                'created_at' => now(),
+            ]);
+        }
+
+        return response()->json(['report' => $report->fresh()->load('user:id,name')]);
     }
 
     public function store(Request $request): JsonResponse
@@ -110,7 +224,7 @@ class HazardReportController extends Controller
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('report-images', 'public');
-            $imageUrl = Storage::disk('public')->url($imagePath);
+            $imageUrl = '/storage/'.$imagePath;
         } else {
             $imageData = (string) $request->input('image_data');
             $imageName = $request->input('image_name') ?: 'report-image.jpg';
@@ -135,8 +249,21 @@ class HazardReportController extends Controller
             };
 
             $imagePath = 'report-images/'.now()->format('YmdHis').'-'.Str::uuid().'.'.$imageExtension;
-            Storage::disk('public')->put($imagePath, $binaryImage);
-            $imageUrl = Storage::disk('public')->url($imagePath);
+            $publicDisk = Storage::disk('public');
+            $publicDisk->makeDirectory('report-images');
+
+            if (! $publicDisk->put($imagePath, $binaryImage) || ! $publicDisk->exists($imagePath)) {
+                logger()->error('Hazard report image could not be saved.', [
+                    'disk_root' => config('filesystems.disks.public.root'),
+                    'image_path' => $imagePath,
+                    'bytes' => strlen($binaryImage),
+                ]);
+
+                return response()->json([
+                    'message' => 'The image could not be saved to storage.',
+                ], 500);
+            }
+            $imageUrl = '/storage/'.$imagePath;
         }
 
         $image = ReportImage::create([
@@ -166,7 +293,7 @@ class HazardReportController extends Controller
             ->values()
             ->all();
 
-        $imageUrl = $report->images->first()?->image_url;
+        $imageUrl = $this->presentImageUrl($report->images->first()?->image_url);
         $barangayNumber = preg_match('/\d+/', (string) $report->barangay, $matches) ? (int) $matches[0] : null;
 
         return [
@@ -191,6 +318,24 @@ class HazardReportController extends Controller
             'status' => ucfirst($report->status),
             'createdAt' => $report->created_at?->toISOString(),
         ];
+    }
+
+    private function presentImageUrl(?string $imageUrl): ?string
+    {
+        if (!$imageUrl) {
+            return null;
+        }
+
+        $path = parse_url($imageUrl, PHP_URL_PATH);
+
+        if (!$path || !str_starts_with($path, '/storage/')) {
+            return $imageUrl;
+        }
+
+        return request()->getSchemeAndHttpHost().'/api/report-images/'.ltrim(
+            Str::after($path, '/storage/'),
+            '/'
+        );
     }
 
     private function deriveAlertLevel(HazardReport $report): string

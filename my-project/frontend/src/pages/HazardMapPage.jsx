@@ -3,6 +3,7 @@ import {
   MapContainer,
   TileLayer,
   Marker,
+  Circle,
   Popup,
   ZoomControl,
   AttributionControl,
@@ -18,12 +19,10 @@ import AlertLevelLegend from "../components/AlertLevelLegend";
 import LayersToggle from "../components/LayersToggle";
 import HazardPinPopup from "../components/HazardPinPopup";
 import { hazardPinIcons } from "../components/HazardMapPin";
-import {
-  filterHazardReports,
-  getDefaultMapFilters,
-} from "../utils/hazardFilters";
+import { filterHazardReports, getDefaultMapFilters } from "../utils/hazardFilters";
 
-// Rough center over North Caloocan (Camarin/Deparo/Llano area)
+// Rough center over North Caloocan (Camarin/Deparo/Llano area) so the map
+// opens centered on the barangays we actually have mock reports for.
 const MAP_CENTER = [14.7569, 120.9967];
 const MAP_ZOOM = 14;
 const DUPLICATE_PIN_OFFSET_METERS = 24;
@@ -146,6 +145,45 @@ function offsetCoordinates(lat, lng, index, total, radiusMeters = DUPLICATE_PIN_
   };
 }
 
+function getHotspots(reports) {
+  const remaining = [...reports];
+  const hotspots = [];
+  const clusterRadiusMeters = 200;
+
+  while (remaining.length > 0) {
+    const seed = remaining.shift();
+    const cluster = [seed];
+
+    for (let index = remaining.length - 1; index >= 0; index -= 1) {
+      const report = remaining[index];
+      const latitudeDistance = (report.lat - seed.lat) * 111320;
+      const longitudeDistance =
+        (report.lng - seed.lng) * 111320 * Math.cos((seed.lat * Math.PI) / 180);
+      const distance = Math.sqrt(latitudeDistance ** 2 + longitudeDistance ** 2);
+
+      if (distance <= clusterRadiusMeters) {
+        cluster.push(report);
+        remaining.splice(index, 1);
+      }
+    }
+
+    if (cluster.length >= 3) {
+      const center = cluster.reduce(
+        (sum, report) => ({ lat: sum.lat + report.lat, lng: sum.lng + report.lng }),
+        { lat: 0, lng: 0 }
+      );
+
+      hotspots.push({
+        center: [center.lat / cluster.length, center.lng / cluster.length],
+        count: cluster.length,
+        radius: Math.min(320, 150 + cluster.length * 20),
+      });
+    }
+  }
+
+  return hotspots;
+}
+
 function HazardMapPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -215,8 +253,7 @@ function HazardMapPage() {
     return () => controller.abort();
   }, [apiBaseUrl, navigate]);
 
-  const filteredReports = useMemo(
-    () => filterHazardReports(reports, filters), [reports, filters]);
+  const filteredReports = useMemo(() => filterHazardReports(reports, filters), [reports, filters]);
 
   const mapReports = useMemo(() => {
     const grouped = new Map();
@@ -246,9 +283,9 @@ function HazardMapPage() {
     });
 
     return spreadReports;
-  },
-    [filteredReports]
-  );
+  }, [filteredReports]);
+
+  const hotspots = useMemo(() => getHotspots(filteredReports), [filteredReports]);
 
   const focusedReport = useMemo(() => {
     if (focusReportId === null || focusReportId === undefined) {
@@ -271,37 +308,31 @@ function HazardMapPage() {
   }, [focusedReport]);
 
   return (
-    <div className="min-h-screen">
-      {/* Navbar handles its own height and spacer */}
-      <AuthNavbar />
-
+    <div>
       <div className="max-w-[1532px] mx-auto">
-        {/* MAP CONTAINER */}
-        <div
-          className="relative z-0 mx-auto"
-          style={{
-            width: "1531px",
-            height: "720px",
-          }}
-        >
+        <AuthNavbar />
+
+        {/* No manual spacer needed here anymore — AuthNavbar is now sticky,
+            so it reserves its own 82px in the document flow automatically. */}
+
+        {/* Map container — figma: x 1, y 55, w 1531, h 720 */}
+        <div className="relative mx-auto" style={{ width: "1531px", height: "720px" }}>
           <MapContainer
             center={MAP_CENTER}
             zoom={MAP_ZOOM}
             zoomControl={false}
             attributionControl={false}
-            className="relative z-0"
-            style={{
-              width: "100%",
-              height: "100%",
-            }}
+            style={{ width: "100%", height: "100%" }}
           >
+            {/* OpenStreetMap tiles for this page. Google Maps is reserved
+                for the separate hazard-detail view, per our earlier call. */}
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution="&copy; OpenStreetMap contributors"
             />
-
+            {/* Moved off the default bottom-right so it doesn't collide
+                with the Alert Level legend / layers toggle stacked there. */}
             <AttributionControl position="bottomleft" />
-
             <ZoomControl position="topright" />
 
             <FocusMapOnReport
@@ -311,6 +342,26 @@ function HazardMapPage() {
                   : null
               }
             />
+
+            {hotspots.map((hotspot, index) => (
+              <Circle
+                key={`hotspot-${index}`}
+                center={hotspot.center}
+                radius={hotspot.radius}
+                pathOptions={{
+                  color: "#B91C1C",
+                  fillColor: "#EF4444",
+                  fillOpacity: 0.2,
+                  weight: 2,
+                }}
+              >
+                <Popup>
+                  <strong>Hot spot</strong>
+                  <br />
+                  {hotspot.count} reports in this area
+                </Popup>
+              </Circle>
+            ))}
 
             {mapReports.map((report) => (
               <Marker
@@ -333,27 +384,21 @@ function HazardMapPage() {
             ))}
           </MapContainer>
 
-          {/* SIDEBAR OVER THE MAP */}
-          <div
-            className="absolute z-[800]"
-            style={{
-              left: "0px",
-              top: "0px",
-            }}
-          >
+          {/* Sidebar — floats top-left over the map, figma: x 0, y 0, w 250, h 696 */}
+          <div className="absolute z-[500]" style={{ left: "0px", top: "0px" }}>
             <MapSidebar
               collapsed={sidebarCollapsed}
-              onToggleCollapsed={() =>
-                setSidebarCollapsed((prev) => !prev)
-              }
+              onToggleCollapsed={() => setSidebarCollapsed((prev) => !prev)}
               filters={filters}
               onChangeFilters={setFilters}
               reports={reports}
             />
           </div>
 
-          {/* MAP CONTROLS / LEGEND */}
-          <div className="absolute inset-0 pointer-events-none z-[800]">
+          {/* Leaflet's own panes (tiles/markers/popups) carry explicit
+              z-index values up to ~700. z-[1000] here guarantees these
+              always render on top, matching Leaflet's own control z-index. */}
+          <div className="absolute inset-0 pointer-events-none z-[1000]">
             <div className="pointer-events-auto">
               <AlertLevelLegend />
               <LayersToggle />

@@ -5,6 +5,7 @@ import DashboardHero from "../sections/DashboardHero";
 import SearchFilterBar from "../sections/SearchFilterBar";
 import HazardFeed from "../sections/HazardFeed";
 import Footer from "../layouts/Footer";
+import { resolveImageUrl } from "../utils/imageUrls";
 
 function clearStoredAuth() {
   localStorage.removeItem("northsafe_token");
@@ -46,7 +47,7 @@ function formatTimeAgo(dateValue) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-function normalizeReport(report) {
+function normalizeReport(report, apiBaseUrl) {
   const createdAt = report.createdAt ?? report.created_at ?? new Date().toISOString();
   const createdDate = new Date(createdAt);
 
@@ -66,7 +67,7 @@ function normalizeReport(report) {
     upvotes: report.upvotes ?? 0,
     downvotes: report.downvotes ?? 0,
     comments: report.comments ?? 0,
-    imageSrc: report.imageSrc ?? report.imageUrl ?? null,
+    imageSrc: resolveImageUrl(report.imageSrc ?? report.imageUrl ?? report.image_url, apiBaseUrl),
   };
 }
 
@@ -122,7 +123,11 @@ function DashboardPage() {
         }
 
         if (reportsResponse.ok) {
-          setReports((reportsData?.reports ?? []).map(normalizeReport));
+          setReports(
+            (reportsData?.reports ?? []).map((report) =>
+              normalizeReport(report, apiBaseUrl)
+            )
+          );
         }
       } catch (error) {
         if (error.name !== "AbortError") {

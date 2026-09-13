@@ -10,6 +10,13 @@ import RewardHistoryPanel from "../components/profile/RewardHistoryPanel";
 import LogoutConfirmModal from "../components/LogoutConfirmModal";
 import { currentUser } from "../components/data/MockDashboardData";
 
+function clearStoredAuth() {
+  localStorage.removeItem("northsafe_token");
+  localStorage.removeItem("northsafe_user");
+  sessionStorage.removeItem("northsafe_token");
+  sessionStorage.removeItem("northsafe_user");
+}
+
 const TABS = {
   personal: PersonalInformationForm,
   password: ChangePasswordForm,
@@ -27,7 +34,17 @@ export default function ProfilePage() {
     return TABS[tab] ? tab : "personal";
   });
 
-  const [user, setUser] = useState(currentUser);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("northsafe_user") ?? sessionStorage.getItem("northsafe_user");
+
+    if (!storedUser) return currentUser;
+
+    try {
+      return JSON.parse(storedUser) ?? currentUser;
+    } catch {
+      return currentUser;
+    }
+  });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
@@ -48,9 +65,22 @@ export default function ProfilePage() {
 
   function handleSignOutConfirm() {
     setIsLogoutModalOpen(false);
+    const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
+    const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
 
-    // TODO: clear real auth/session state once Laravel auth is wired in
-    navigate("/signin");
+    if (token) {
+      fetch(`${apiBaseUrl}/api/logout`, {
+        method: "POST",
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      }).finally(() => {
+        clearStoredAuth();
+        navigate("/signin", { replace: true });
+      });
+      return;
+    }
+
+    clearStoredAuth();
+    navigate("/signin", { replace: true });
   }
 
   return (

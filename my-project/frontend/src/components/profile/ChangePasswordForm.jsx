@@ -50,20 +50,6 @@ function validate({ currentPassword, newPassword, confirmPassword }) {
   return errors;
 }
 
-// Mock async save — replace with a real API call once the backend is wired in.
-// Kept deliberately similar in shape to mockReverseGeocode in PersonalInformationForm.jsx.
-function mockChangePassword({ currentPassword, newPassword }) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (currentPassword !== "password123") {
-        reject(new Error("Current password is incorrect."));
-        return;
-      }
-      resolve({ passwordUpdatedAt: new Date().toISOString() });
-    }, 1000);
-  });
-}
-
 function InfoIcon() {
   return (
     <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 text-[#1B2A56]">
@@ -128,7 +114,7 @@ export default function ChangePasswordForm({ user, onUpdateUser }) {
     setFormError("");
   }
 
-  function handleSave() {
+  async function handleSave() {
     const nextErrors = validate({ currentPassword, newPassword, confirmPassword });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -137,19 +123,39 @@ export default function ChangePasswordForm({ user, onUpdateUser }) {
     setSaved(false);
     setFormError("");
 
-    // TODO: replace with a real POST/PATCH to the change-password endpoint once Laravel is wired in
-    mockChangePassword({ currentPassword, newPassword })
-      .then(({ passwordUpdatedAt }) => {
-        onUpdateUser?.((prev) => ({ ...prev, passwordUpdatedAt }));
-        resetFields();
-        setSaving(false);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
-      })
-      .catch((err) => {
-        setSaving(false);
-        setFormError(err.message || "Something went wrong. Please try again.");
+    const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
+    const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/change-password`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          newPassword_confirmation: confirmPassword,
+        }),
       });
+      const data = await response.json();
+
+      if (!response.ok) {
+        const validationErrors = data?.errors ? Object.values(data.errors).flat().join(" ") : "";
+        throw new Error(data?.message ?? validationErrors ?? "Unable to change your password.");
+      }
+
+      onUpdateUser?.((prev) => ({ ...prev, passwordUpdatedAt: new Date().toISOString() }));
+      resetFields();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (error) {
+      setFormError(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const lastUpdatedLabel = user?.passwordUpdatedAt

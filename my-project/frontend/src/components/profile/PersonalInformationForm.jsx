@@ -33,10 +33,10 @@ export default function PersonalInformationForm({ user, onUpdateUser }) {
   const [formData, setFormData] = useState({
     firstName: user?.firstName ?? "",
     middleName: user?.middleName ?? "",
-    surname: user?.surname ?? "",
+    surname: user?.surname ?? user?.lastName ?? "",
     suffix: user?.suffix ?? "",
     email: user?.email ?? "",
-    contactNumber: user?.contactNumber ?? "",
+    contactNumber: user?.contactNumber ?? user?.phone ?? "",
     houseNumber: user?.houseNumber ?? "",
     street: user?.street ?? "",
     barangay: user?.barangay ?? "",
@@ -48,6 +48,8 @@ export default function PersonalInformationForm({ user, onUpdateUser }) {
   const [saved, setSaved] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [profilePictureFile, setProfilePictureFile] = useState(null);
 
   function updateField(field, value) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -75,17 +77,56 @@ export default function PersonalInformationForm({ user, onUpdateUser }) {
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!validate()) return;
     setSaving(true);
     setSaved(false);
-    // TODO: replace with a real PATCH /api/profile call once Laravel is wired in
-    setTimeout(() => {
-      onUpdateUser?.((prev) => ({ ...prev, ...formData, fullName: `${formData.firstName} ${formData.surname}` }));
-      setSaving(false);
+    setSaveError("");
+
+    const token = localStorage.getItem("northsafe_token") ?? sessionStorage.getItem("northsafe_token");
+    const apiBaseUrl = import.meta.env.VITE_API_URL ?? "";
+
+    try {
+      const requestBody = new FormData();
+      requestBody.append("_method", "PATCH");
+      requestBody.append("firstName", formData.firstName);
+      requestBody.append("middleName", formData.middleName);
+      requestBody.append("lastName", formData.surname);
+      requestBody.append("email", formData.email);
+      requestBody.append("phone", formData.contactNumber);
+      requestBody.append("houseNumber", formData.houseNumber);
+      requestBody.append("street", formData.street);
+      requestBody.append("barangay", formData.barangay);
+      requestBody.append("zipCode", formData.zipCode);
+      if (profilePictureFile) {
+        requestBody.append("profilePicture", profilePictureFile, profilePictureFile.name);
+      }
+
+      const response = await fetch(`${apiBaseUrl}/api/profile`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: requestBody,
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        const validationErrors = data?.errors ? Object.values(data.errors).flat().join(" ") : "";
+        throw new Error(data?.message ?? validationErrors ?? "Unable to save your profile.");
+      }
+
+      onUpdateUser?.(data.user);
+      localStorage.setItem("northsafe_user", JSON.stringify(data.user));
+      sessionStorage.setItem("northsafe_user", JSON.stringify(data.user));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    }, 1200);
+    } catch (error) {
+      setSaveError(error.message || "Unable to save your profile.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleUseCurrentLocation() {
@@ -117,7 +158,10 @@ export default function PersonalInformationForm({ user, onUpdateUser }) {
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[auto_1fr]">
         <ProfilePictureUploader
           value={formData.profilePicture}
-          onChange={(_file, url) => updateField("profilePicture", url)}
+          onChange={(file, url) => {
+            setProfilePictureFile(file);
+            updateField("profilePicture", url);
+          }}
         />
 
         <div className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
@@ -173,6 +217,7 @@ export default function PersonalInformationForm({ user, onUpdateUser }) {
       </div>
 
       {locationError && <p className="mt-4 text-sm text-red-500">{locationError}</p>}
+      {saveError && <p className="mt-4 text-sm font-medium text-red-500">{saveError}</p>}
       {saved && <p className="mt-4 text-sm font-medium text-emerald-600">Changes saved.</p>}
 
       <div className="mt-8 flex justify-end gap-3">

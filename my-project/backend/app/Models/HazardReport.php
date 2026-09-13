@@ -25,6 +25,8 @@ class HazardReport extends Model
         'severity_override_reason',
         'severity_overridden_by',
         'status',
+        'is_pinned',
+        'rejection_reason',
         'verified_by',
         'verified_at',
         'resolved_at',
@@ -37,6 +39,7 @@ class HazardReport extends Model
             'longitude' => 'decimal:7',
             'ai_confidence' => 'decimal:4',
             'severity_overridden' => 'boolean',
+            'is_pinned' => 'boolean',
             'verified_at' => 'datetime',
             'resolved_at' => 'datetime',
         ];

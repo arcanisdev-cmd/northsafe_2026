@@ -46,7 +46,7 @@ function SignInPage() {
         sessionStorage.setItem("northsafe_user", JSON.stringify(data.user));
       }
 
-      navigate("/dashboard");
+      navigate(data.user?.role === "admin" ? "/admin" : "/dashboard");
     } catch {
       setErrorMessage("Unable to reach the authentication server.");
     } finally {
