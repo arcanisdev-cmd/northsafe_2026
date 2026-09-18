@@ -7,6 +7,14 @@ import HazardMapPage from "./pages/HazardMapPage";
 import MyReportsPage from "./pages/MyReportsPage";
 import ReportHazardPage from "./pages/ReportHazardPage";
 import ProfilePage from "./pages/ProfilePage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminHazardReportsPage from "./pages/AdminHazardReportsPage";
+import AdminAIClassificationPage from "./pages/AdminAIClassificationPage";
+import AdminHazardMapPage from "./pages/AdminHazardMapPage";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import AdminAnnouncementsPage from "./pages/AdminAnnouncementsPage";
+import AdminUserManagementPage from "./pages/AdminUserManagementPage";
+import AdminAuditLogsPage from "./pages/AdminAuditLogsPage";
 
 function App() {
   return (
@@ -19,6 +27,14 @@ function App() {
       <Route path="/my-reports" element={<MyReportsPage />} />
       <Route path="/report-hazard" element={<ReportHazardPage />} />
       <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/admin" element={<AdminDashboardPage />} /> 
+      <Route path="/admin/hazard-reports" element={<AdminHazardReportsPage />} />
+      <Route path="/admin/ai-logs" element={<AdminAIClassificationPage />} />
+      <Route path="/admin/map" element={<AdminHazardMapPage />} />
+      <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+      <Route path="/admin/announcements" element={<AdminAnnouncementsPage />} />
+      <Route path="/admin/users" element={<AdminUserManagementPage />} />
+      <Route path="/admin/audit-logs" element={<AdminAuditLogsPage />} />
     </Routes>
   );
 }
