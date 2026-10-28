@@ -546,3 +546,294 @@ export const hazardReports = [
     imageSrc: null,
   },
 ];
+
+// ---------------------------------------------------------------
+// STAFF (Barangay Personnel)
+// ---------------------------------------------------------------
+export const staffOfficer = {
+  id: "staff-001",
+  name: "Juan Dela Cruz",
+  initials: "JD",
+  role: "staff",
+  avatarUrl: null,
+  assignedBarangays: ["Barangay 171 (Bagumbong)"],
+};
+
+// Field check pipeline. fieldChecksPending is derived from this.
+export const staffFieldChecks = {
+  awaitingCheck: 3,
+  inProgress: 2,
+  findingsToRecord: 1,
+};
+
+export const staffDashboardStats = {
+  totalReports: 1248,
+  weeklyChangePct: 14,
+  pendingReview: 24,
+  highSeverity: 18,
+  resolved: 1152,
+  flagged: 14,
+  fieldChecksPending: Object.values(staffFieldChecks).reduce(
+    (sum, n) => sum + n,
+    0
+  ),
+};
+
+// Mock timestamps are relative to "now" so "x min ago" always looks live
+const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString();
+
+// Shape of a future GET /staff/reports?status=pending&sort=priority
+export const staffPriorityReports = [
+  {
+    id: "NS-2026-000123",
+    title: "Knee-deep flood on main road",
+    location: "Susano Rd cor. Bagumbong",
+    category: "Flood",
+    severity: "High",
+    credibility: 97,
+    submittedAt: minutesAgo(4),
+    thumbnailUrl: null,
+  },
+  {
+    id: "NS-2026-000124",
+    title: "Pothole near school",
+    location: "Near Bagumbong Elementary School",
+    category: "Road Damage",
+    severity: "Medium",
+    credibility: 46,
+    submittedAt: minutesAgo(9),
+    thumbnailUrl: null,
+  },
+  {
+    id: "NS-2026-000128",
+    title: "Fallen tree blocking road",
+    location: "Bagumbong Creek Road",
+    category: "Road Damage",
+    severity: "Medium",
+    credibility: 82,
+    submittedAt: minutesAgo(15),
+    thumbnailUrl: null,
+  },
+  {
+    id: "NS-2026-000130",
+    title: "Downed power line",
+    location: "Sector 4",
+    category: "Electrical Hazard",
+    severity: "Low",
+    credibility: 82,
+    submittedAt: minutesAgo(22),
+    thumbnailUrl: null,
+  },
+  {
+    id: "NS-2026-000131",
+    title: "Blocked drainage",
+    location: "Susano Rd",
+    category: "Flood",
+    severity: "Low",
+    credibility: 58,
+    submittedAt: minutesAgo(31),
+    thumbnailUrl: null,
+  },
+];
+
+// Named categories only. "Other" is derived so the donut always sums to totalReports.
+const NAMED_CATEGORIES = [
+  { label: "Flood", count: 349, color: "#2563EB" },
+  { label: "Road Damage", count: 274, color: "#F97316" },
+  { label: "Electrical Hazard", count: 175, color: "#FACC15" },
+  { label: "Fire Risk", count: 112, color: "#EF4444" },
+];
+
+export const staffHazardCategories = [
+  ...NAMED_CATEGORIES,
+  {
+    label: "Other",
+    count:
+      staffDashboardStats.totalReports -
+      NAMED_CATEGORIES.reduce((sum, c) => sum + c.count, 0),
+    color: "#94A3B8",
+  },
+];
+
+// Shape of a future GET /staff/activity?limit=4
+export const staffRecentActivity = [
+  { id: "NS-2026-000118", type: "Verified", hazard: "Flood", location: "Bagumbong", note: "by Juan Dela Cruz", at: minutesAgo(12) },
+  { id: "NS-2026-000117", type: "Field Check", hazard: "Road Damage", location: "Bagumbong", note: "by Juan Dela Cruz", at: minutesAgo(28) },
+  { id: "NS-2026-000116", type: "Forwarded", hazard: "Fire Risk", location: "Bagumbong", note: "to BFP (call)", at: minutesAgo(60) },
+  { id: "NS-2026-000113", type: "Rejected", hazard: "Electrical Hazard", location: "Bagumbong", note: "Reused photo", at: minutesAgo(120) },
+];
+
+// Mock for the OpenWeather API (already in your stack)
+export const staffWeather = {
+  tempC: 28,
+  condition: "Heavy rain",
+  location: "Bagumbong, North Caloocan",
+};
+
+// Sidebar badges read from the same stats, so they always match the cards
+export const staffNavBadges = {
+  reviewQueue: staffDashboardStats.pendingReview,
+  inProgress: 3,
+  fieldChecks: staffDashboardStats.fieldChecksPending,
+  notifications: 3,
+};
+
+// ---------------------------------------------------------------
+// STAFF REVIEW QUEUE
+// ---------------------------------------------------------------
+const REPORTERS = ["M. Reyes", "K. Villanueva", "R. Santos", "A. Mercado", "J. Lim"];
+
+const QUEUE_TEMPLATES = [
+  { title: "Knee-deep flood on main road", location: "Susano Rd cor. Bagumbong", category: "Flood", severity: "High", credibility: 97, status: "Under Review", confirmations: 3, disputes: 0, reusedPhoto: false, aiMatch: true, description: "Floodwater is about knee-deep and covering both lanes. Tricycles and pedestrians cannot pass safely." },
+  { title: "Pothole near school", location: "Near Bagumbong Elementary School", category: "Road Damage", severity: "Medium", credibility: 46, status: "Field Check", confirmations: 0, disputes: 0, reusedPhoto: true, aiMatch: false, aiCategory: "Other", description: "Large pothole at the school gate. Students walk around it into the road." },
+  { title: "Fallen tree blocking road", location: "Bagumbong Creek Road", category: "Other", severity: "Medium", credibility: 62, status: "Needs Info", confirmations: 1, disputes: 0, reusedPhoto: false, aiMatch: true, description: "A tree fell across one lane after last night's rain. Traffic is slowed down." },
+  { title: "Downed power line", location: "Sector 4", category: "Electrical Hazard", severity: "Low", credibility: 82, status: "Under Review", confirmations: 2, disputes: 0, reusedPhoto: false, aiMatch: true, description: "A cable is hanging low over the alley beside the sari-sari store." },
+  { title: "Blocked drainage", location: "Susano Rd", category: "Flood", severity: "Low", credibility: 58, status: "Needs Info", confirmations: 0, disputes: 0, reusedPhoto: false, aiMatch: true, description: "Drain cover is clogged with garbage and water pools after light rain." },
+  { title: "Gas leak smell", location: "Zone 3", category: "Fire Risk", severity: "High", credibility: 64, status: "Under Review", confirmations: 0, disputes: 0, reusedPhoto: false, aiMatch: true, description: "Residents smell gas near a row of eateries. No flames or smoke seen." },
+  { title: "Illegal dumping", location: "Near Bagumbong Creek", category: "Waste", severity: "Medium", credibility: 74, status: "Under Review", confirmations: 1, disputes: 0, reusedPhoto: false, aiMatch: true, description: "Piles of household waste along the creek bank, growing for several days." },
+  { title: "Cracked wall on old structure", location: "Sector 2", category: "Building Damage", severity: "Medium", credibility: 52, status: "Field Check", confirmations: 0, disputes: 2, reusedPhoto: false, aiMatch: false, aiCategory: "Road Damage", description: "Long diagonal crack on the wall of an old building beside the footpath." },
+];
+
+// 24 reports (3 cycles of 8 templates). Shape of a future GET /staff/reports?status=pending
+export const staffReviewQueue = Array.from({ length: 24 }, (_, i) => {
+  const t = QUEUE_TEMPLATES[i % QUEUE_TEMPLATES.length];
+  return {
+    ...t,
+    id: "NS-2026-" + String(123 + i).padStart(6, "0"),
+    credibility: Math.min(99, Math.max(10, t.credibility + ((i * 7) % 9) - 4)),
+    aiCategory: t.aiCategory || t.category,
+    aiSeverity: t.severity,
+    reporter: REPORTERS[i % REPORTERS.length],
+    lat: 14.754 + ((i * 37) % 20) / 10000,
+    lng: 121.0295 + ((i * 53) % 30) / 10000,
+    submittedAt: minutesAgo(4 + i * 9),
+    thumbnailUrl: null,
+  };
+});
+
+export const staffReportStatuses = ["Under Review", "Needs Info", "Field Check"];
+
+// Keep the sidebar badge and dashboard cards in sync with the queue
+staffNavBadges.reviewQueue = staffReviewQueue.length;
+staffDashboardStats.pendingReview = staffReviewQueue.length;
+staffDashboardStats.highSeverity = staffReviewQueue.filter(
+  (r) => r.severity === "High"
+).length;
+
+// ---------------------------------------------------------------
+// STAFF REPORT DETAIL (forwarding + decisions)
+// ---------------------------------------------------------------
+// Receiving offices. Routing configuration is owned by Admin.
+export const staffReceivingOffices = [
+  "BFP",
+  "City Health Department",
+  "PSTMD",
+  "City Engineering Department",
+  "CDRRMO / EOC",
+];
+
+export const staffForwardMethods = ["Phone call", "Text message", "Messaging app"];
+
+// Mock of the Admin routing rules: suggested office per hazard category
+export const staffRoutingSuggestions = {
+  Flood: "CDRRMO / EOC",
+  "Road Damage": "City Engineering Department",
+  "Electrical Hazard": "City Engineering Department",
+  "Fire Risk": "BFP",
+  Waste: "City Health Department",
+  "Building Damage": "City Engineering Department",
+  Other: "CDRRMO / EOC",
+};
+
+export const staffRejectReasons = [
+  "Reused or stolen photo",
+  "Location does not match the report",
+  "Not a physical or environmental hazard",
+  "Duplicate report",
+  "Outside Barangay 171 coverage",
+  "Other",
+];
+
+export const staffSuspiciousReasons = [
+  "Photo looks edited or AI-generated",
+  "Reused photo from another report",
+  "Location does not match the photo",
+  "Repeated false reports from this account",
+  "Other",
+];
+
+export const staffDeactivationReasons = [
+  "Repeated false or fake reports",
+  "Abusive or misleading content",
+  "Suspected duplicate or fake account",
+  "Other",
+];
+
+// Mock reporter history (a future GET /staff/reporters/:id/history)
+export const staffReporterHistory = {
+  "M. Reyes": { submitted: 14, verified: 12, rejected: 1 },
+  "K. Villanueva": { submitted: 6, verified: 5, rejected: 0 },
+  "R. Santos": { submitted: 9, verified: 4, rejected: 3 },
+  "A. Mercado": { submitted: 3, verified: 1, rejected: 2 },
+  "J. Lim": { submitted: 21, verified: 19, rejected: 1 },
+};
+
+// ---------------------------------------------------------------
+// STAFF IN PROGRESS (forwarded + in-progress seed reports)
+// ---------------------------------------------------------------
+const IN_PROGRESS_TEMPLATES = [
+  { id: "NS-2026-000112", title: "Flooding on main road", location: "Susano Rd cor. Bagumbong", category: "Flood", severity: "High", credibility: 95, status: "In Progress", confirmations: 4, reporter: "M. Reyes", description: "Knee-deep flood near the market area. Vehicles are having difficulty passing.", office: "CDRRMO / EOC", method: "Phone call", contact: "Duty officer", fwdNote: "Reported knee-deep flooding on Susano Rd.", forwardedAgo: 420, updates: [{ note: "Office confirmed the report and is checking drainage.", method: "Phone call", ago: 240 }, { note: "Water is slowly receding on one lane.", method: "Text message", ago: 60 }] },
+  { id: "NS-2026-000116", title: "Overloaded extension cords near stalls", location: "Zone 3", category: "Fire Risk", severity: "Medium", credibility: 81, status: "In Progress", confirmations: 2, reporter: "J. Lim", description: "Many extension cords are daisy-chained along a row of food stalls. Fire risk only, no fire.", office: "BFP", method: "Phone call", contact: "Fire safety desk", fwdNote: "Possible electrical fire risk at the stalls.", forwardedAgo: 300, updates: [{ note: "BFP will schedule a safety inspection.", method: "Phone call", ago: 150 }] },
+  { id: "NS-2026-000119", title: "Downed power line", location: "Sector 4", category: "Electrical Hazard", severity: "Low", credibility: 84, status: "In Progress", confirmations: 2, reporter: "K. Villanueva", description: "A cable hangs low over the alley beside the sari-sari store.", office: "City Engineering Department", method: "Text message", contact: "", fwdNote: "Low-hanging cable over a walkway.", forwardedAgo: 600, updates: [{ note: "Crew assigned; repair expected within the day.", method: "Text message", ago: 200 }] },
+  { id: "NS-2026-000120", title: "Fallen tree blocking road", location: "Bagumbong Creek Road", category: "Other", severity: "Medium", credibility: 78, status: "Forwarded", confirmations: 1, reporter: "R. Santos", description: "A tree fell across one lane after last night's rain.", office: "CDRRMO / EOC", method: "Phone call", contact: "", fwdNote: "Tree blocking one lane of the creek road.", forwardedAgo: 95, updates: [] },
+  { id: "NS-2026-000121", title: "Illegal dumping", location: "Near Bagumbong Creek", category: "Waste", severity: "Medium", credibility: 72, status: "Forwarded", confirmations: 1, reporter: "A. Mercado", description: "Household waste is piling up along the creek bank.", office: "City Health Department", method: "Messaging app", contact: "", fwdNote: "Growing dump site beside the creek.", forwardedAgo: 180, updates: [] },
+  { id: "NS-2026-000122", title: "Cracked wall on old structure", location: "Sector 2", category: "Building Damage", severity: "Medium", credibility: 76, status: "Forwarded", confirmations: 2, reporter: "J. Lim", description: "Long diagonal crack on an old building beside the footpath. Field check confirmed it.", office: "City Engineering Department", method: "Phone call", contact: "Engineering desk", fwdNote: "Field check confirmed the crack is widening.", forwardedAgo: 45, updates: [] },
+];
+
+export const staffInProgressReports = IN_PROGRESS_TEMPLATES.map((t, i) => {
+  const { office, method, contact, fwdNote, forwardedAgo, updates, ...rest } = t;
+  const submittedAt = minutesAgo(forwardedAgo + 90);
+  const forwardedAt = minutesAgo(forwardedAgo);
+  return {
+    ...rest,
+    aiCategory: rest.category,
+    aiSeverity: rest.severity,
+    disputes: 0,
+    reusedPhoto: false,
+    aiMatch: true,
+    lat: 14.7532 + i * 0.0003,
+    lng: 121.0301 + i * 0.0004,
+    submittedAt,
+    thumbnailUrl: null,
+    forwarding: { office, method, contact, note: fwdNote, at: forwardedAt },
+    updates: updates.map((u) => ({ note: u.note, method: u.method, at: minutesAgo(u.ago), by: staffOfficer.name })),
+    timeline: [
+      { label: "Report submitted", detail: "By " + rest.reporter, at: submittedAt, by: "Reporter" },
+      { label: "Verified by staff", detail: "Ready to forward to the receiving office.", at: minutesAgo(forwardedAgo + 30), by: staffOfficer.name },
+      { label: "Forwarded to " + office, detail: "Via " + method + ". " + fwdNote, at: forwardedAt, by: staffOfficer.name },
+      ...updates.map((u) => ({ label: "Progress update", detail: u.note + " (via " + u.method.toLowerCase() + ")", at: minutesAgo(u.ago), by: staffOfficer.name })),
+    ],
+  };
+});
+
+staffNavBadges.inProgress = staffInProgressReports.length;
+
+// ---------------------------------------------------------------
+// STAFF FIELD CHECKS (guides + findings outcomes)
+// ---------------------------------------------------------------
+export const staffFieldChecklists = {
+  Flood: ["Estimate the water depth", "Check whether the road is passable", "Look for blocked drains or canals", "Note how many households are affected"],
+  "Road Damage": ["Note the size and depth of the damage", "Check how much traffic is affected", "Look for walkways or a school nearby", "Take a clear photo for the record"],
+  "Electrical Hazard": ["Keep your distance and never touch a wire", "Note the pole or line location and height", "Look for sparks or burn marks", "Note whether people pass by often"],
+  "Fire Risk": ["Look for overloaded outlets or loose wiring", "Check whether exits are blocked", "Note flammable materials nearby", "If you see flames or smoke, call the emergency hotlines right away"],
+  Waste: ["Estimate the volume of waste", "Check whether it is near drains or water", "Note any smell or health concern", "Ask how long it has been piling up"],
+  "Building Damage": ["Measure the crack width and length", "Check whether walls lean or sag", "Note whether people stay near the structure", "Take a clear photo for the record"],
+  Other: ["Describe the hazard in your own words", "Note what it blocks or affects", "Take a clear photo for the record"],
+};
+
+// Each outcome decides the report's next status
+export const staffFieldOutcomes = [
+  { value: "Hazard confirmed on site", status: "Verified", result: "The report becomes Verified and can be forwarded." },
+  { value: "Hazard not found at the location", status: "Rejected", result: "The report is rejected and leaves the queue." },
+  { value: "Could not confirm (no access or unclear)", status: "Needs Info", result: "The report goes back to Needs Info for the reporter." },
+];
