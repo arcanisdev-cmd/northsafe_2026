@@ -1,0 +1,15 @@
+  {
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Northsafe Frontend",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/my-project/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

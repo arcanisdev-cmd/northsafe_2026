@@ -1,33 +1,43 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
-// North Caloocan's numbered barangay range for this district.
 const BARANGAYS = Array.from({ length: 188 - 165 + 1 }, (_, i) => `Barangay ${165 + i}`);
 
-function BarangaySelect({ value, onChange, onBlur, error, touched }) {
+function BarangaySelect({
+  value,
+  onChange,
+  onBlur,
+  error,
+  touched,
+  options = BARANGAYS,
+  label = "Barangay",
+  placeholder = "Select the barangay of the hazard",
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const wrapperRef = useRef(null);
 
-  const filtered = BARANGAYS.filter((b) =>
+  const filtered = options.filter((b) =>
     b.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Only listen while the list is open, so clicking elsewhere on the page doesn't mark the field as touched
   useEffect(() => {
+    if (!isOpen) return undefined;
     function handleClickOutside(e) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
         setIsOpen(false);
-        onBlur();
+        if (onBlur) onBlur();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onBlur]);
+  }, [isOpen, onBlur]);
 
   return (
     <div ref={wrapperRef} className="relative">
       <label htmlFor="barangay" className="font-inter text-[13px] font-medium text-[#1C1C1C]">
-        Barangay <span className="text-[#D30004]">*</span>
+        {label} <span className="text-[#D30004]">*</span>
       </label>
 
       <button
@@ -41,7 +51,7 @@ function BarangaySelect({ value, onChange, onBlur, error, touched }) {
         }`}
       >
         <span className={value ? "text-[#1C1C1C]" : "text-gray-400"}>
-          {value || "Select Your Barangay"}
+          {value || placeholder}
         </span>
         <ChevronDown size={16} className="text-gray-400" />
       </button>
@@ -67,7 +77,7 @@ function BarangaySelect({ value, onChange, onBlur, error, touched }) {
                 onChange(b);
                 setIsOpen(false);
                 setSearch("");
-                onBlur();
+                if (onBlur) onBlur();
               }}
               className="w-full text-left px-4 py-2 text-[15px] hover:bg-gray-50"
             >

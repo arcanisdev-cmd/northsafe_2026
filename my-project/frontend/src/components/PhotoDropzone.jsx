@@ -1,10 +1,21 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UploadCloud, X } from "lucide-react";
 
 function PhotoDropzone({ file, onFileSelect }) {
   const [isDragging, setIsDragging] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const inputRef = useRef(null);
-  const previewUrl = file ? URL.createObjectURL(file) : null;
+
+  // One preview URL per file (the old code made a new one on every render)
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return undefined;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -35,7 +46,11 @@ function PhotoDropzone({ file, onFileSelect }) {
         type="file"
         accept="image/png,image/jpeg"
         className="hidden"
-        onChange={(e) => e.target.files?.[0] && onFileSelect(e.target.files[0])}
+        onChange={(e) => {
+          const picked = e.target.files?.[0];
+          if (picked) onFileSelect(picked);
+          e.target.value = "";
+        }}
       />
 
       {previewUrl ? (
@@ -47,6 +62,7 @@ function PhotoDropzone({ file, onFileSelect }) {
               e.stopPropagation();
               onFileSelect(null);
             }}
+            aria-label="Remove photo"
             className="absolute top-4 right-4 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center"
           >
             <X size={14} className="text-white" />
@@ -59,7 +75,7 @@ function PhotoDropzone({ file, onFileSelect }) {
             Drag an image here or upload a file
           </p>
           <p className="font-inter text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
-          <p className="font-inter text-xs text-gray-400">On mobile? Tap to use camera</p>
+          <p className="font-inter text-xs text-gray-400">On a phone? Use the camera button below</p>
         </>
       )}
     </div>

@@ -14,9 +14,6 @@ import {
 } from "lucide-react";
 import AdminSidebar from "../layouts/AdminSidebar";
 import AdminHeader from "../layouts/AdminHeader";
-// hazardTypes / alertLevelOptions / barangayOptions stay imported straight
-// from MockDashboardData.js — same genuine cross-app taxonomy reasoning as
-// AdminHazardReportsPage.jsx. Everything else on this page is local-only.
 import { hazardTypes, alertLevelOptions, barangayOptions } from "../components/data/MockDashboardData";
 
 // ---------------------------------------------------------------------------
@@ -236,9 +233,7 @@ function LogsTable({ logs, page, onPageChange }) {
   );
 }
 
-// ---------------------------------------------------------------------------
 // Page
-// ---------------------------------------------------------------------------
 
 export default function AdminAIClassificationPage() {
   const [search, setSearch] = useState("");
@@ -260,12 +255,12 @@ export default function AdminAIClassificationPage() {
   }, [search, status, category, alertLevel, barangay]);
 
   const handleLogout = () => {
-    // TODO: wire up to LogoutConfirmModal.jsx.
+  
     console.log("logout clicked");
   };
 
   const handleDateRangeClick = () => {
-    // TODO: open a real date range picker; currently a static display.
+    
     console.log("date range clicked");
   };
 
