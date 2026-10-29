@@ -1,9 +1,9 @@
-import { createContext, useContext, useState, useMemo, useCallback } from "react";
+import { createContext, useContext, useState, useMemo, useCallback, useRef } from "react";
 import {
   staffOfficer,
   staffReviewQueue,
   staffInProgressReports,
-  staffNavBadges,
+  staffNotificationSeed,
 } from "../components/data/MockDashboardData";
 
 export const QUEUE_STATUSES = ["Under Review", "Needs Info", "Field Check"];
@@ -14,6 +14,59 @@ export const FIELD_STAGES = ["Awaiting Check", "In Progress", "Findings to Recor
 export const fieldStageOf = (r) => (r.fieldCheck && r.fieldCheck.stage) || "Awaiting Check";
 
 const StaffReportsContext = createContext(null);
+
+const STATUS_NOTICE = {
+  Verified: ["status", "Report verified", "Ready to forward to a receiving office."],
+  "Needs Info": ["status", "Additional information requested", "Waiting for the reporter to reply."],
+  "Field Check": ["field_check", "Flagged for field check", "On-site check needed before a decision."],
+  Rejected: ["status", "Report rejected", "The report was not accepted."],
+  Forwarded: ["status", "Forwarding recorded", "Recorded only. This does not confirm the office has acted."],
+  "In Progress": ["status", "Report moved to In Progress", "The receiving office is acting on it."],
+  Resolved: ["status", "Report resolved", "The community can still dispute a resolved report."],
+};
+
+const FIELD_NOTICE = {
+  "In Progress": ["Field check started", "Check under way at the location."],
+  "Findings to Record": ["Field visit completed", "Findings are ready to be recorded."],
+  Completed: ["Findings recorded", "Your findings were saved."],
+};
+
+const STATUS_LINK = {
+  "Field Check": "/staff/field-checks",
+  Forwarded: "/staff/in-progress",
+  "In Progress": "/staff/in-progress",
+  Resolved: "/staff/resolved",
+};
+
+// Turns a saved action into a notification (or null when nothing is worth showing)
+function noticeFromPatch(r, patch) {
+  const detail = "/staff/review-queue/" + r.id;
+  if (patch.flag) {
+    return {
+      type: "admin",
+      title: patch.flag === "suspicious" ? "Report flagged as suspicious" : "Account reported to Admin",
+      body: r.id + " was sent to Admin for review.",
+      to: detail,
+    };
+  }
+  if (patch.fieldCheck && FIELD_NOTICE[patch.fieldCheck.stage]) {
+    const c = FIELD_NOTICE[patch.fieldCheck.stage];
+    return { type: "field_check", title: c[0], body: r.title + ". " + c[1], to: "/staff/field-checks" };
+  }
+  if (patch.update) {
+    return {
+      type: "follow_up",
+      title: "Office follow-up recorded",
+      body: r.title + ". " + patch.update.note,
+      to: "/staff/in-progress",
+    };
+  }
+  const s = patch.status && STATUS_NOTICE[patch.status];
+  if (!s) return null;
+  return { type: s[0], title: s[1], body: r.title + ". " + s[2], to: STATUS_LINK[patch.status] || detail };
+}
+
+let noticeCount = 0;
 
 function buildInitialTimeline(r) {
   const t = new Date(r.submittedAt).getTime();
@@ -73,6 +126,11 @@ const SEED = [...staffReviewQueue, ...staffInProgressReports].map((r) => {
 
 export function StaffReportsProvider({ children }) {
   const [reports, setReports] = useState(SEED);
+  const [notifications, setNotifications] = useState(staffNotificationSeed);
+
+  // Lets recordAction read the latest list without re-creating the callback
+  const reportsRef = useRef(reports);
+  reportsRef.current = reports;
 
   // Fake latency. Swap the body for a Laravel call later; pages keep the same API.
   const recordAction = useCallback(
@@ -80,6 +138,15 @@ export function StaffReportsProvider({ children }) {
       new Promise((resolve) => {
         setTimeout(() => {
           const at = new Date().toISOString();
+          const current = reportsRef.current.find((r) => r.id === id);
+          const notice = current ? noticeFromPatch(current, patch) : null;
+          if (notice) {
+            noticeCount += 1;
+            setNotifications((prev) => [
+              { ...notice, id: "n-live-" + noticeCount, reportId: id, at, read: false },
+              ...prev,
+            ]);
+          }
           setReports((prev) =>
             prev.map((r) => {
               if (r.id !== id) return r;
@@ -113,7 +180,19 @@ export function StaffReportsProvider({ children }) {
     []
   );
 
-  const value = useMemo(() => ({ reports, recordAction }), [reports, recordAction]);
+  // Swap for PATCH /staff/notifications/:id/read later
+  const markRead = useCallback((id) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  }, []);
+
+  const markAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => (n.read ? n : { ...n, read: true })));
+  }, []);
+
+  const value = useMemo(
+    () => ({ reports, recordAction, notifications, markRead, markAllRead }),
+    [reports, recordAction, notifications, markRead, markAllRead]
+  );
 
   return <StaffReportsContext.Provider value={value}>{children}</StaffReportsContext.Provider>;
 }
@@ -124,16 +203,16 @@ export function useStaffReports() {
   return ctx;
 }
 
-// Sidebar badges, derived from the live list
+// Sidebar and bell badges, derived from the live lists
 export function useStaffBadges() {
-  const { reports } = useStaffReports();
+  const { reports, notifications } = useStaffReports();
   return useMemo(
     () => ({
       reviewQueue: reports.filter((r) => QUEUE_STATUSES.includes(r.status)).length,
       inProgress: reports.filter((r) => IN_PROGRESS_STATUSES.includes(r.status)).length,
       fieldChecks: reports.filter((r) => r.status === "Field Check").length,
-      notifications: staffNavBadges.notifications,
+      notifications: notifications.filter((n) => !n.read).length,
     }),
-    [reports]
+    [reports, notifications]
   );
 }

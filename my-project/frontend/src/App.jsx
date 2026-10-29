@@ -21,6 +21,10 @@ import StaffReviewQueuePage from "./pages/StaffReviewQueuePage";
 import StaffReportDetailPage from "./pages/StaffReportDetailPage";
 import StaffInProgressPage from "./pages/StaffInProgressPage";
 import StaffFieldChecksPage from "./pages/StaffFieldChecksPage";
+import StaffResolvedReportsPage from "./pages/StaffResolvedReportsPage";
+import StaffMapMonitorPage from "./pages/StaffMapMonitorPage";
+import StaffAnalyticsPage from "./pages/StaffAnalyticsPage";
+import StaffNotificationsPage from "./pages/StaffNotificationsPage";
 
 function App() {
   return (
@@ -46,7 +50,11 @@ function App() {
         <Route path="/staff/review-queue/:id" element={<StaffReportDetailPage />} />
                 <Route path="/staff/in-progress" element={<StaffInProgressPage />} />
         <Route path="/staff/field-checks" element={<StaffFieldChecksPage />} />
+        <Route path="/staff/resolved" element={<StaffResolvedReportsPage />} />
+                <Route path="/staff/notifications" element={<StaffNotificationsPage />} />
         <Route path="/staff/*" element={<StaffDashboardPage />} />
+        <Route path="/staff/map" element={<StaffMapMonitorPage />} />
+        <Route path="/staff/analytics" element={<StaffAnalyticsPage />} />
       </Routes>
     </StaffReportsProvider>
   );

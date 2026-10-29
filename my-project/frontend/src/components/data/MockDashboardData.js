@@ -837,3 +837,426 @@ export const staffFieldOutcomes = [
   { value: "Hazard not found at the location", status: "Rejected", result: "The report is rejected and leaves the queue." },
   { value: "Could not confirm (no access or unclear)", status: "Needs Info", result: "The report goes back to Needs Info for the reporter." },
 ];
+
+// ---------------------------------------------------------------
+// STAFF RESOLVED REPORTS
+// ---------------------------------------------------------------
+const JUAN = "Juan Dela Cruz";
+const ANA = "Ana Villanueva";
+const step = (status, by, minsBefore, note) => ({ status, by, minsBefore, note });
+
+const RESOLVED_TEMPLATES = [
+  {
+    title: "Flooded street after heavy rain", category: "Flood", severity: "High",
+    location: "Susano Rd cor. Bagumbong", lat: 14.7563, lng: 121.0393,
+    description: "Water reached knee height along the road, blocking tricycles and pedestrians.",
+    confirmations: 3, disputes: 0, credibility: 94, resolvedBy: JUAN,
+    reason: "Floodwater receded and the drainage was cleared. Road confirmed passable during the field check.",
+    evidence: { afterPhotos: 2, notes: "Water level back to normal. Drainage declogged by City Engineering crew. Road open to traffic." },
+    forwarding: [
+      { office: "City Engineering", method: "Call", acknowledgement: "Acknowledged by the duty engineer", followUp: "Drainage declogging completed", minsBefore: 2000 },
+    ],
+    history: [
+      step("Submitted", "Resident", 3000, "Report submitted with photo and map pin."),
+      step("Under Review", JUAN, 2950, "Report opened for evidence review."),
+      step("Field Check", JUAN, 2700, "Flagged for an on-site check."),
+      step("Verified", JUAN, 2400, "Field check confirmed the flooding."),
+      step("Forwarded", JUAN, 2000, "Forwarded to City Engineering by call."),
+      step("In Progress", JUAN, 1500, "Declogging started."),
+      step("Resolved", JUAN, 0, "Closed after on-site confirmation."),
+    ],
+    reopened: { source: "Community dispute", by: "Verified resident", note: "Water is rising again on the same stretch after yesterday's rain.", minsAgo: 300, newDisputes: 2 },
+  },
+  {
+    title: "Large pothole near school", category: "Road Damage", severity: "Medium",
+    location: "Near Bagumbong Elementary School", lat: 14.7571, lng: 121.0402,
+    description: "A deep pothole in front of the school gate is a risk for students and motorcycles.",
+    confirmations: 2, disputes: 0, credibility: 88, resolvedBy: ANA,
+    reason: "Pothole patched by City Engineering. After-photos show a level road surface.",
+    evidence: { afterPhotos: 2, notes: "Asphalt patch applied and compacted. Checked by staff the next morning." },
+    forwarding: [
+      { office: "City Engineering", method: "Message", acknowledgement: "Message acknowledged by the office", followUp: "Patching scheduled, then completed", minsBefore: 5000 },
+    ],
+    history: [
+      step("Submitted", "Resident", 6500, "Report submitted with photo and map pin."),
+      step("Under Review", ANA, 6400, "Report opened for evidence review."),
+      step("Verified", ANA, 6000, "Photo and location match."),
+      step("Forwarded", ANA, 5000, "Forwarded to City Engineering by message."),
+      step("In Progress", ANA, 3000, "Patching scheduled."),
+      step("Resolved", ANA, 0, "Patch confirmed with after-photos."),
+    ],
+    reopened: null,
+  },
+  {
+    title: "Sagging power line over sidewalk", category: "Electrical Hazard", severity: "High",
+    location: "Sector 4", lat: 14.7549, lng: 121.0381,
+    description: "A power line is hanging low above the sidewalk where residents walk.",
+    confirmations: 2, disputes: 0, credibility: 91, resolvedBy: JUAN,
+    reason: "Line re-tensioned and secured by the utility provider, as relayed by the CDRRMO / EOC.",
+    evidence: { afterPhotos: 1, notes: "Line now at a safe height. Residents confirmed no further sagging that week." },
+    forwarding: [
+      { office: "CDRRMO / EOC", method: "Call", acknowledgement: "Referred to the utility provider", followUp: "Utility crew re-tensioned the line", minsBefore: 3500 },
+    ],
+    history: [
+      step("Submitted", "Resident", 4500, "Report submitted with photo and map pin."),
+      step("Under Review", JUAN, 4400, "Report opened for evidence review."),
+      step("Verified", JUAN, 4200, "Photo clearly shows the hazard."),
+      step("Forwarded", JUAN, 3500, "Forwarded to CDRRMO / EOC by call."),
+      step("In Progress", JUAN, 2000, "Utility crew on schedule."),
+      step("Resolved", JUAN, 0, "Closed after the utility confirmed the repair."),
+    ],
+    reopened: { source: "New information", by: "Barangay staff", note: "A neighbor reports the line is sagging again after strong winds.", minsAgo: 1500, newDisputes: 0 },
+  },
+  {
+    title: "Uncollected garbage at creek side", category: "Waste", severity: "Low",
+    location: "Near Bagumbong Creek", lat: 14.7558, lng: 121.0410,
+    description: "Garbage has piled up along the creek bank and is starting to block the water flow.",
+    confirmations: 1, disputes: 0, credibility: 79, resolvedBy: ANA,
+    reason: "Barangay cleanup completed. Area cleared and the creek flow is no longer blocked.",
+    evidence: { afterPhotos: 2, notes: "Cleanup done by the barangay crew. Collection schedule reminder posted nearby." },
+    forwarding: [],
+    history: [
+      step("Submitted", "Resident", 2500, "Report submitted with photo and map pin."),
+      step("Under Review", ANA, 2450, "Report opened for evidence review."),
+      step("Verified", ANA, 2300, "Photo matches the location."),
+      step("In Progress", ANA, 1200, "Barangay cleanup scheduled."),
+      step("Resolved", ANA, 0, "Cleanup confirmed with after-photos."),
+    ],
+    reopened: null,
+  },
+  {
+    title: "Overloaded extension cords in vacant stall", category: "Fire Risk", severity: "Medium",
+    location: "Zone 3", lat: 14.7552, lng: 121.0398,
+    description: "Several extension cords are daisy-chained in a vacant stall near stored materials.",
+    confirmations: 1, disputes: 0, credibility: 85, resolvedBy: JUAN,
+    reason: "BFP advised the owner. Overloaded wiring removed, confirmed during a field check.",
+    evidence: { afterPhotos: 1, notes: "Wiring removed and the stall is secured. No active fire; risk only." },
+    forwarding: [
+      { office: "BFP", method: "Call", acknowledgement: "BFP inspection recorded", followUp: "Owner advised to remove the wiring", minsBefore: 4000 },
+    ],
+    history: [
+      step("Submitted", "Resident", 5200, "Report submitted with photo and map pin."),
+      step("Under Review", JUAN, 5100, "Report opened for evidence review."),
+      step("Field Check", JUAN, 4800, "Flagged for an on-site check."),
+      step("Verified", JUAN, 4300, "Field check confirmed the fire risk."),
+      step("Forwarded", JUAN, 4000, "Forwarded to BFP by call."),
+      step("Resolved", JUAN, 0, "Closed after the wiring was removed."),
+    ],
+    reopened: null,
+  },
+  {
+    title: "Cracked wall of old structure", category: "Building Damage", severity: "Low",
+    location: "Sector 2", lat: 14.7566, lng: 121.0377,
+    description: "A visible crack runs along the wall of an old building beside the footpath.",
+    confirmations: 0, disputes: 1, credibility: 61, resolvedBy: ANA,
+    reason: "City Engineering found the wall stable. Barangay posted caution signage.",
+    evidence: { afterPhotos: 2, notes: "Engineering advisory received. Caution signage installed beside the wall." },
+    forwarding: [
+      { office: "City Engineering", method: "Message", acknowledgement: "Assessment received by message", followUp: "Wall assessed as stable", minsBefore: 6000 },
+    ],
+    history: [
+      step("Submitted", "Resident", 8000, "Report submitted with photo and map pin."),
+      step("Under Review", ANA, 7900, "Report opened for evidence review."),
+      step("Field Check", ANA, 7500, "Flagged for an on-site check."),
+      step("Verified", ANA, 7000, "Crack confirmed on site."),
+      step("Forwarded", ANA, 6000, "Forwarded to City Engineering by message."),
+      step("Resolved", ANA, 0, "Closed after the engineering advisory."),
+    ],
+    reopened: null,
+  },
+];
+
+// 12 records (2 cycles of 6). Only the first cycle can be reopened.
+// Shape of a future GET /staff/reports?status=resolved,reopened
+export const staffResolvedReports = Array.from({ length: 12 }, (_, i) => {
+  const t = RESOLVED_TEMPLATES[i % RESOLVED_TEMPLATES.length];
+  const resolvedMs = Date.now() - (1440 * (2 + i * 2) + 90) * 60000;
+  const at = (minsBefore) => new Date(resolvedMs - minsBefore * 60000).toISOString();
+  const reopened =
+    i < RESOLVED_TEMPLATES.length && t.reopened
+      ? { ...t.reopened, at: minutesAgo(t.reopened.minsAgo) }
+      : null;
+
+  return {
+    id: "NS-2026-" + String(40 + i * 3).padStart(6, "0"),
+    title: t.title,
+    category: t.category,
+    severity: t.severity,
+    location: t.location,
+    barangay: "Barangay 171 (Bagumbong)",
+    description: t.description,
+    lat: t.lat,
+    lng: t.lng,
+    confirmations: t.confirmations,
+    disputes: t.disputes,
+    credibility: t.credibility,
+    photos: 2,
+    resolvedAt: new Date(resolvedMs).toISOString(),
+    status: reopened ? "Reopened" : "Resolved",
+    evidence: t.evidence,
+    record: { by: t.resolvedBy, reason: t.reason, at: new Date(resolvedMs).toISOString() },
+    forwarding: t.forwarding.map((f) => ({ ...f, at: at(f.minsBefore) })),
+    history: [
+      ...t.history.map((h) => ({ status: h.status, by: h.by, note: h.note, at: at(h.minsBefore) })),
+      ...(reopened ? [{ status: "Reopened", by: reopened.by, note: reopened.note, at: reopened.at }] : []),
+    ],
+    reopened,
+  };
+});
+
+function syncStaffCounts() {
+  staffNavBadges.reviewQueue = staffReviewQueue.length;
+  staffDashboardStats.pendingReview = staffReviewQueue.length;
+  staffDashboardStats.highSeverity = staffReviewQueue.filter(
+    (r) => r.severity === "High"
+  ).length;
+}
+
+// Reassessment: reopened report goes back to the review workflow
+export function returnReportToReview(id) {
+  const i = staffResolvedReports.findIndex((r) => r.id === id);
+  if (i === -1) return;
+  const [r] = staffResolvedReports.splice(i, 1);
+  staffReviewQueue.unshift({
+    id: r.id,
+    title: r.title,
+    location: r.location,
+    category: r.category,
+    severity: r.severity,
+    credibility: r.credibility,
+    status: "Under Review",
+    confirmations: r.confirmations,
+    disputes: r.disputes + (r.reopened ? r.reopened.newDisputes : 0),
+    reusedPhoto: false,
+    aiMatch: true,
+    submittedAt: new Date().toISOString(),
+    thumbnailUrl: null,
+  });
+  syncStaffCounts();
+}
+
+// Reassessment: new information does not change the outcome
+export function keepReportResolved(id, note, by) {
+  const r = staffResolvedReports.find((x) => x.id === id);
+  if (!r) return;
+  r.status = "Resolved";
+  r.reopened = null;
+  r.history.push({ status: "Reassessed", by: by, note: note, at: new Date().toISOString() });
+}
+
+// ---------------------------------------------------------------
+// STAFF MAP MONITOR
+// ---------------------------------------------------------------
+// Named sites used for demo coordinates and for naming concentration areas
+export const staffSiteCoords = {
+  "Susano Rd cor. Bagumbong": [14.7563, 121.0393],
+  "Near Bagumbong Elementary School": [14.7571, 121.0402],
+  "Bagumbong Creek Road": [14.7549, 121.0418],
+  "Sector 4": [14.7549, 121.0381],
+  "Susano Rd": [14.7558, 121.0386],
+  "Zone 3": [14.7552, 121.0398],
+  "Near Bagumbong Creek": [14.7558, 121.041],
+  "Sector 2": [14.7566, 121.0377],
+};
+
+// Verified / Forwarded / In Progress cases (the other lists cover the remaining statuses)
+export const staffActiveCases = [
+  { id: "NS-2026-000101", title: "Floodwater near creek crossing", category: "Flood", severity: "High", status: "Forwarded", location: "Bagumbong Creek Road", lat: 14.7551, lng: 121.0416, confirmations: 3, fieldChecked: true, submittedAt: minutesAgo(1900) },
+  { id: "NS-2026-000102", title: "Broken road edge by school gate", category: "Road Damage", severity: "Medium", status: "In Progress", location: "Near Bagumbong Elementary School", lat: 14.7573, lng: 121.0399, confirmations: 2, fieldChecked: false, submittedAt: minutesAgo(2600) },
+  { id: "NS-2026-000103", title: "Exposed wires on utility pole", category: "Electrical Hazard", severity: "High", status: "Verified", location: "Sector 4", lat: 14.7551, lng: 121.0384, confirmations: 2, fieldChecked: false, submittedAt: minutesAgo(700) },
+  { id: "NS-2026-000104", title: "Blocked fire exit in storage room", category: "Fire Risk", severity: "Medium", status: "Verified", location: "Zone 3", lat: 14.755, lng: 121.04, confirmations: 1, fieldChecked: true, submittedAt: minutesAgo(1200) },
+  { id: "NS-2026-000105", title: "Garbage pile beside creek", category: "Waste", severity: "Low", status: "In Progress", location: "Near Bagumbong Creek", lat: 14.756, lng: 121.0412, confirmations: 1, fieldChecked: false, submittedAt: minutesAgo(3100) },
+  { id: "NS-2026-000106", title: "Overflowing drainage on road", category: "Flood", severity: "Medium", status: "Forwarded", location: "Susano Rd", lat: 14.7557, lng: 121.0388, confirmations: 2, fieldChecked: false, submittedAt: minutesAgo(2200) },
+  { id: "NS-2026-000107", title: "Leaning wall of old structure", category: "Building Damage", severity: "Low", status: "Verified", location: "Sector 2", lat: 14.7568, lng: 121.0374, confirmations: 0, fieldChecked: true, submittedAt: minutesAgo(4100) },
+  { id: "NS-2026-000108", title: "Fallen tree across the road", category: "Other", severity: "High", status: "In Progress", location: "Susano Rd cor. Bagumbong", lat: 14.7565, lng: 121.0395, confirmations: 3, fieldChecked: true, submittedAt: minutesAgo(1600) },
+];
+
+// Small deterministic offset so repeated mock reports don't sit on one pixel (about 70 m)
+function mapJitter(id) {
+  const n = parseInt(id.slice(-6), 10) || 0;
+  return {
+    lat: (((n * 7) % 13) - 6) * 0.00011,
+    lng: (((n * 11) % 13) - 6) * 0.00011,
+  };
+}
+
+// Shape of a future GET /staff/map-reports. Derived live from the other lists,
+// so reassessment moves, status changes, and counts always match.
+export function getStaffMapReports() {
+  const fallback = [14.7558, 121.0396];
+
+  const queue = staffReviewQueue.map((r) => {
+    const base = staffSiteCoords[r.location] || fallback;
+    const j = mapJitter(r.id);
+    return {
+      id: r.id, title: r.title, category: r.category, severity: r.severity,
+      status: r.status, location: r.location, submittedAt: r.submittedAt,
+      confirmations: r.confirmations, fieldChecked: false, reopened: false,
+      lat: base[0] + j.lat, lng: base[1] + j.lng,
+    };
+  });
+
+  const resolved = staffResolvedReports.map((r) => {
+    const j = mapJitter(r.id);
+    return {
+      id: r.id, title: r.title, category: r.category, severity: r.severity,
+      status: r.status === "Reopened" ? "Under Review" : "Resolved",
+      location: r.location, submittedAt: r.history[0].at,
+      confirmations: r.confirmations,
+      fieldChecked: r.history.some((h) => h.status === "Field Check"),
+      reopened: r.status === "Reopened",
+      lat: r.lat + j.lat, lng: r.lng + j.lng,
+    };
+  });
+
+  const active = staffActiveCases.map((r) => ({ ...r, reopened: false }));
+
+  return [...queue, ...resolved, ...active].map((r) => ({
+    ...r,
+    barangay: "Barangay 171 (Bagumbong)",
+  }));
+}
+
+// ---------------------------------------------------------------
+// STAFF ANALYTICS
+// ---------------------------------------------------------------
+export const staffAnalyticsConfig = {
+  reviewTargetMinutes: 120, // admin-configured. Set to null for the "not configured" state.
+};
+
+export const staffPermissions = {
+  exportAnalytics: true,
+};
+
+// Deterministic pseudo-random so mock numbers stay stable between reloads
+function makeRand(seed) {
+  let s = seed;
+  return () => {
+    s = (s * 1664525 + 1013904223) % 4294967296;
+    return s / 4294967296;
+  };
+}
+
+// Counts tie to the dashboard: 1,248 total, 1,152 resolved, 24 pending review (12+6+6)
+const ANALYTICS_STATUS_COUNTS = [
+  ["Resolved", 1152], ["Rejected", 40], ["In Progress", 14], ["Forwarded", 10],
+  ["Verified", 8], ["Under Review", 12], ["Needs Info", 6], ["Field Check", 6],
+];
+const ANALYTICS_CATEGORY_COUNTS = [
+  ["Flood", 349], ["Road Damage", 274], ["Electrical Hazard", 175], ["Fire Risk", 112],
+  ["Waste", 120], ["Building Damage", 98], ["Other", 120],
+];
+const OFFICE_BY_CATEGORY = {
+  Flood: ["City Engineering", "CDRRMO / EOC"],
+  "Road Damage": ["City Engineering", "PSTMD"],
+  "Electrical Hazard": ["CDRRMO / EOC", "CDRRMO / EOC"],
+  "Fire Risk": ["BFP", "BFP"],
+  Waste: ["City Health", "City Health"],
+  "Building Damage": ["City Engineering", "City Engineering"],
+  Other: ["CDRRMO / EOC", "City Engineering"],
+};
+
+// Shape of a future GET /staff/analytics/reports (one row per report, 180 days)
+export const staffAnalyticsReports = (() => {
+  const rand = makeRand(2026);
+  const MIN = 60000;
+  const DAY = 86400000;
+  const nowMs = Date.now();
+  const areas = Object.keys(staffSiteCoords);
+
+  const expand = (pairs) =>
+    pairs.flatMap(([value, n]) => Array.from({ length: n }, () => value));
+  const shuffle = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  const statuses = shuffle(expand(ANALYTICS_STATUS_COUNTS));
+  const categories = shuffle(expand(ANALYTICS_CATEGORY_COUNTS));
+  let fieldCheckIndex = 0;
+
+  return statuses.map((status, i) => {
+    const category = categories[i];
+    const open = status !== "Resolved" && status !== "Rejected";
+    const highCut = category === "Fire Risk" || category === "Electrical Hazard" ? 0.35 : 0.2;
+    const roll = rand();
+    const severity = roll < highCut ? "High" : roll < 0.7 ? "Medium" : "Low";
+    const area = areas[Math.floor(Math.pow(rand(), 1.5) * areas.length)];
+
+    // Open cases are recent. Closed ones spread over 180 days, weighted to recent.
+    const offsetDays = open ? 0.25 + rand() * 8.75 : 1 + 179 * Math.pow(rand(), 1.3);
+    const submittedMs = nowMs - offsetDays * DAY;
+
+    const reviewDelay = 8 + rand() * rand() * 300; // minutes
+    const reviewedMs = status === "Under Review" ? null : submittedMs + reviewDelay * MIN;
+
+    let resolvedMs = null;
+    if (status === "Resolved") {
+      const hours = (4 + rand() * 68) * (severity === "High" ? 0.6 : 1);
+      resolvedMs = Math.min(reviewedMs + hours * 60 * MIN, nowMs - 5 * MIN);
+    }
+
+    let verification = "None";
+    if (["Verified", "Forwarded", "In Progress", "Resolved"].includes(status)) {
+      verification = rand() < 0.42 ? "Field" : "Desk";
+    }
+
+    let fieldCheckStage = null;
+    if (status === "Field Check") {
+      fieldCheckStage =
+        fieldCheckIndex < 3 ? "Awaiting" : fieldCheckIndex < 5 ? "In Progress" : "Findings Recorded";
+      fieldCheckIndex += 1;
+    }
+
+    let fieldOutcome = null;
+    if (verification === "Field") {
+      fieldOutcome = rand() < 0.85 ? "Hazard confirmed" : "Needs follow-up";
+    } else if (status === "Rejected" && rand() < 0.25) {
+      fieldOutcome = "Hazard not found";
+    }
+
+    let forwardedTo = null;
+    let forwardResponse = null;
+    const forwarded =
+      status === "Forwarded" || status === "In Progress" || (status === "Resolved" && rand() < 0.3);
+    if (forwarded) {
+      const pair = OFFICE_BY_CATEGORY[category];
+      forwardedTo = rand() < 0.7 ? pair[0] : pair[1];
+      if (status === "Forwarded") forwardResponse = rand() < 0.6 ? "Acknowledged" : "No response yet";
+      else if (status === "In Progress") forwardResponse = rand() < 0.5 ? "Follow-up received" : "Acknowledged";
+      else forwardResponse = "Follow-up received";
+    }
+
+    return {
+      id: "NS-2026-" + String(2000 + i).padStart(6, "0"),
+      category, severity, status, area, verification, fieldCheckStage, fieldOutcome,
+      forwardedTo, forwardResponse,
+      submittedAt: new Date(submittedMs).toISOString(),
+      reviewedAt: reviewedMs ? new Date(reviewedMs).toISOString() : null,
+      resolvedAt: resolvedMs ? new Date(resolvedMs).toISOString() : null,
+    };
+  });
+})();
+
+// ---------------------------------------------------------------
+// STAFF NOTIFICATIONS (seed). Shape of a future GET /staff/notifications
+// ---------------------------------------------------------------
+export const staffNotificationSeed = [
+  { id: "n-001", type: "high_severity", title: "High-severity report", body: "NS-2026-000128, Gas leak smell in Zone 3. AI suggests High severity (suggestion only). Review it as a priority.", reportId: "NS-2026-000128", to: "/staff/review-queue/NS-2026-000128", at: minutesAgo(3), read: false },
+  { id: "n-002", type: "high_severity", title: "High-severity report", body: "NS-2026-000123, Knee-deep flood on Susano Rd. AI suggests High severity (suggestion only).", reportId: "NS-2026-000123", to: "/staff/review-queue/NS-2026-000123", at: minutesAgo(8), read: false },
+  { id: "n-003", type: "new_report", title: "New hazard report", body: "Downed power line at Sector 4 was submitted in Barangay 171.", reportId: "NS-2026-000126", to: "/staff/review-queue/NS-2026-000126", at: minutesAgo(15), read: false },
+  { id: "n-004", type: "info", title: "Resident added information", body: "The reporter sent new details for the fallen tree report that was waiting for clarification.", reportId: "NS-2026-000125", to: "/staff/review-queue/NS-2026-000125", at: minutesAgo(25), read: false },
+  { id: "n-005", type: "dispute", title: "Community dispute", body: "2 residents disputed the cracked wall report. Consider a field check.", reportId: "NS-2026-000130", to: "/staff/review-queue/NS-2026-000130", at: minutesAgo(40), read: false },
+  { id: "n-006", type: "review", title: "Needs more verification", body: "Blocked drainage has limited evidence and a low credibility score. A staff check is needed.", reportId: "NS-2026-000127", to: "/staff/review-queue/NS-2026-000127", at: minutesAgo(70), read: true },
+  { id: "n-007", type: "field_check", title: "Flagged for field check", body: "Pothole near school has a reused-photo signal and an AI mismatch. Visit the location and record your findings.", reportId: "NS-2026-000124", to: "/staff/field-checks", at: minutesAgo(95), read: true },
+  { id: "n-008", type: "follow_up", title: "Office follow-up recorded", body: "CDRRMO / EOC said they are checking the drainage on Susano Rd. Recorded by phone call.", reportId: "NS-2026-000112", to: "/staff/in-progress", at: minutesAgo(240), read: true },
+  { id: "n-009", type: "follow_up", title: "Office follow-up recorded", body: "City Engineering Department assigned a crew for the downed line. Recorded by text message.", reportId: "NS-2026-000119", to: "/staff/in-progress", at: minutesAgo(200), read: true },
+  { id: "n-010", type: "status", title: "Forwarding recorded", body: "Fallen tree blocking road was forwarded to CDRRMO / EOC. Recorded only. This does not confirm the office has acted.", reportId: "NS-2026-000120", to: "/staff/in-progress", at: minutesAgo(95), read: true },
+  { id: "n-011", type: "admin", title: "Account reported to Admin", body: "The reporter account for NS-2026-000124 was sent to Admin. Only Admin can deactivate accounts.", reportId: "NS-2026-000124", to: "/staff/review-queue/NS-2026-000124", at: minutesAgo(1500), read: true },
+  { id: "n-012", type: "status", title: "Report moved to In Progress", body: "Overloaded extension cords near stalls is now being handled by BFP.", reportId: "NS-2026-000116", to: "/staff/in-progress", at: minutesAgo(2900), read: true },
+];
+
+staffNavBadges.notifications = staffNotificationSeed.filter((n) => !n.read).length;
