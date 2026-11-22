@@ -1,3 +1,4 @@
+
 import FeatureCard from "../components/FeatureCard";
 import peopleIcon from "../assets/People.png";
 import notificationIcon from "../assets/Notification.png";
@@ -49,20 +50,26 @@ function Features() {
   return (
     <section
       id="features"
-      className="scroll-mt-[100px] px-5 pb-16 pt-12 sm:px-8 sm:pb-20 sm:pt-16 md:px-12 md:pb-24 md:pt-20 lg:px-[100px] lg:pb-[80px] lg:pt-[30px]"
+      className="relative isolate scroll-mt-[100px] overflow-hidden bg-[#F3F6FA] px-5 pb-16 pt-12 sm:px-8 sm:pb-20 sm:pt-16 md:px-12 md:pb-24 md:pt-20 lg:px-[100px] lg:pb-[80px] lg:pt-[30px]"
     >
+      {/* Faint mint glow behind the grid (decorative) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-1/2 top-1/3 -z-10 h-[420px] w-[80%] -translate-x-1/2 rounded-full bg-mint/70 blur-3xl"
+      />
+
       {/* Section label */}
-      <p className="text-center font-inter text-base font-black text-[#00BEC2] sm:text-lg md:text-[20px]">
+      <p className="text-center font-inter text-base font-extrabold tracking-wide text-[#00767A] sm:text-lg md:text-[20px]">
         REPORT. TRACK. PROTECT
       </p>
 
       {/* Heading */}
-      <h2 className="mt-2 text-center font-inter text-[28px] font-semibold leading-tight text-[#112472] sm:text-[32px] md:mt-[10px] md:text-[36px]">
+      <h2 className="mt-2 text-center font-inter text-[28px] font-semibold leading-tight text-[#112472] sm:text-[32px] md:mt-[10px] md:text-[40px]">
         A Safer Community Starts with You.
       </h2>
 
       {/* Description */}
-      <p className="mx-auto mt-3 max-w-[900px] text-center font-krub text-base font-medium leading-7 text-black sm:text-lg md:mt-[10px] md:text-[20px] md:leading-[130.2%]">
+      <p className="mx-auto mt-3 max-w-[640px] text-balance text-center font-krub text-base font-medium leading-7 text-navy sm:text-lg md:mt-[10px] md:text-[20px] md:leading-[130.2%]">
         Help us build a safer North Caloocan by reporting hazards in your
         area. Your report can save lives.
       </p>

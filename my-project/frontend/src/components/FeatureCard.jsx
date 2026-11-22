@@ -1,24 +1,27 @@
+
 function FeatureCard({ icon, title, description, zoom = 300 }) {
   return (
     <div
-      className="flex flex-col items-center text-center rounded-xl bg-white border transition-all duration-300 hover:-translate-y-1"
+      className="flex flex-col items-center text-center rounded-xl bg-white border transition-all duration-300 hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
       style={{
-        borderColor: "#EDEDED",
-        padding: "24px 24px 20px",
-        boxShadow: "0 6px 16px -6px rgba(0,0,0,0.15)",
+        borderColor: "rgba(8,20,53,0.10)",
+        padding: "28px 28px 28px",
+        boxShadow: "0 6px 18px -3px rgba(8,20,53,0.20)",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.boxShadow =
-          "0 16px 30px -8px rgba(0,0,0,0.22)";
+          "0 14px 28px -5px rgba(8,20,53,0.26)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.boxShadow =
-          "0 6px 16px -6px rgba(0,0,0,0.15)";
+          "0 6px 18px -3px rgba(8,20,53,0.20)";
       }}
     >
+      {/* Icon tile */}
       <div
         role="img"
         aria-hidden="true"
+        className="rounded-2xl bg-mint"
         style={{
           width: "100px",
           height: "75px",
@@ -26,15 +29,15 @@ function FeatureCard({ icon, title, description, zoom = 300 }) {
           backgroundSize: `${zoom}%`,
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          marginBottom: "2px",
+          marginBottom: "14px",
           flexShrink: 0,
         }}
       />
 
       <h3
-        className="font-roboto font-medium text-xl text-black"
+        className="font-roboto font-medium text-xl text-navy"
         style={{
-          maxWidth: "320px",
+          maxWidth: "340px",
           margin: 0,
         }}
       >
@@ -42,10 +45,10 @@ function FeatureCard({ icon, title, description, zoom = 300 }) {
       </h3>
 
       <p
-        className="font-source-sans font-normal text-sm text-black mt-[6px]"
+        className="font-source-sans font-normal text-base text-navy/80 text-balance mt-2"
         style={{
-          maxWidth: "320px",
-          lineHeight: "30px",
+          maxWidth: "340px",
+          lineHeight: "26px",
         }}
       >
         {description}

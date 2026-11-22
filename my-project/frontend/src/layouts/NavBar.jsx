@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import Button from "../components/Button";
+import { Menu, X, ArrowRight } from "lucide-react";
 import logo from "../assets/logo.png";
 
 const navLinks = [
@@ -12,84 +12,86 @@ const navLinks = [
   { label: "Hotlines", id: "hotlines" },
 ];
 
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
 function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(function () {
-    function handleScroll() {
-      setIsScrolled(window.scrollY > 20);
-    }
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return function () {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
 
   function handleHomeClick(e) {
     e.preventDefault();
-    scrollToTop();
+    setIsMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function renderLink(link, onNavigate) {
-    const baseClass = "font-roboto font-bold text-sm tracking-wide uppercase transition-colors cursor-pointer";
-    const colorClass = isScrolled ? "text-navy hover:text-teal" : "text-white hover:text-teal";
-    const fullClass = baseClass + " " + colorClass;
-
-    if (link.id === "home") {
-      return <a href="#" className={fullClass} onClick={handleHomeClick}>{link.label}</a>;
-    }
-
-    const targetHref = "#" + link.id;
-    return <a href={targetHref} className={fullClass} onClick={onNavigate}>{link.label}</a>;
+  function renderLink(link, mobile = false) {
+    return (
+      <a
+        href={`#${link.id}`}
+        onClick={(e) => {
+          if (link.id === "home") handleHomeClick(e);
+          else if (mobile) setIsMenuOpen(false);
+        }}
+        className={`font-jakarta font-semibold text-[15px] text-navy transition-colors duration-200 hover:text-teal focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal ${
+          mobile ? "flex min-h-[44px] w-full items-center px-2" : ""
+        }`}
+      >
+        {link.label}
+      </a>
+    );
   }
+
+  const signInClass =
+    "inline-flex items-center justify-center gap-2.5 rounded-full bg-navy text-white hover:bg-navy/90 transition-colors font-jakarta font-bold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal";
 
   return (
-    <nav className={"fixed top-0 left-0 w-full z-50 transition-all duration-300 " + (isScrolled ? "bg-white border-b border-gray-100" : "bg-transparent")}>
-      <div className="h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
+    <nav className="fixed top-0 left-0 z-50 w-full bg-white border-b border-gray-100">
+      <div className="h-[86px] flex items-center justify-between px-4 sm:px-6 md:px-10 lg:px-[72px] xl:px-[84px]">
+        {/* Logo */}
+        <a href="#home" onClick={handleHomeClick} className="flex-shrink-0">
+          <img src={logo} alt="NorthSafe logo" className="h-[70px] w-auto object-contain" />
+        </a>
 
-        <a href="#" onClick={handleHomeClick}><img src={logo} alt="NorthSafe logo" className="h-[64px] w-auto" /></a>
-
-        <div className="hidden md:flex items-center gap-x-14">
-          <ul className="flex items-center gap-x-16">
-            {navLinks.map(function (link) {
-              return <li key={link.label}>{renderLink(link)}</li>;
-            })}
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center gap-x-12 xl:gap-x-14">
+          <ul className="flex items-center gap-x-10 xl:gap-x-12">
+            {navLinks.map((link) => (
+              <li key={link.id}>{renderLink(link)}</li>
+            ))}
           </ul>
 
-          <Link to="/signin">
-            <Button variant={isScrolled ? "navy" : "outline"} className="rounded-full px-6 py-2.5 text-sm">
-              SIGN IN
-            </Button>
+          <Link to="/signin" className={`${signInClass} flex-shrink-0 px-7 py-3.5 text-[14px]`}>
+            SIGN IN
+            <ArrowRight size={18} strokeWidth={2.5} />
           </Link>
         </div>
 
+        {/* Mobile Menu Toggle */}
         <button
           type="button"
-          onClick={function () { setIsMenuOpen(!isMenuOpen); }}
-          className={"md:hidden transition-colors " + (isScrolled ? "text-navy" : "text-white")}
-          aria-label="Toggle menu"
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          className="lg:hidden flex items-center justify-center text-navy focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal"
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isMenuOpen}
+          aria-controls="mobile-navigation"
         >
-          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          {isMenuOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
       </div>
 
+      {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 sm:px-6 py-4">
-          <ul className="flex flex-col gap-4">
-            {navLinks.map(function (link) {
-              return <li key={link.label}>{renderLink(link, function () { setIsMenuOpen(false); })}</li>;
-            })}
+        <div id="mobile-navigation" className="lg:hidden bg-white border-t border-gray-100 px-4 sm:px-6 py-4">
+          <ul className="flex flex-col gap-1">
+            {navLinks.map((link) => (
+              <li key={link.id}>{renderLink(link, true)}</li>
+            ))}
           </ul>
-          <Link to="/signin" onClick={function () { setIsMenuOpen(false); }}>
-            <Button variant="navy" className="rounded-full w-full py-2.5 text-sm mt-4">
-              Sign In
-            </Button>
+
+          <Link
+            to="/signin"
+            onClick={() => setIsMenuOpen(false)}
+            className={`${signInClass} mt-4 w-full py-3.5 text-sm`}
+          >
+            SIGN IN
+            <ArrowRight size={18} strokeWidth={2.5} />
           </Link>
         </div>
       )}
