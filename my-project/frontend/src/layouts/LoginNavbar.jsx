@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import logo from "../assets/logo.png";
 
-function LoginNavbar() {
+function LoginNavbar({ variant = "switch" }) {
   const location = useLocation();
   const isSignupPage = location.pathname === "/signup";
 
@@ -9,25 +10,47 @@ function LoginNavbar() {
     ? { label: "Sign In", to: "/signin" }
     : { label: "Sign Up", to: "/signup" };
 
+  const isBackHome = variant === "back-home";
+  const action = isBackHome
+    ? { label: "Back to home", to: "/" }
+    : oppositeLink;
+
   return (
-    // sticky + z-50 to match NavBar's behavior. Always solid white here
-    // (unlike NavBar's transparent-over-hero transition) since this page
-    // has no hero content to scroll under.
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      <div className="h-[82px] flex items-center justify-between px-4 sm:px-6 md:px-12 lg:px-[100px]">
-        <Link to="/" className="flex items-center">
-          {/* Same h-[64px] w-auto sizing as NavBar's logo — logo.png already
-              contains the full wordmark, so no separate text needed. */}
-          <img src={logo} alt="NorthSafe logo" className="h-[64px] w-auto" />
+    
+    <nav className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white">
+      
+      <div className="flex h-16 items-center justify-between px-4 sm:h-[86px] sm:px-6 md:px-10 lg:px-[72px] xl:px-[84px]">
+        
+        <Link to="/" aria-label="NorthSafe home" className="flex-shrink-0">
+          <img
+            src={logo}
+            alt="NorthSafe logo"
+            className="h-11 w-auto object-contain sm:h-[70px]"
+          />
         </Link>
 
-        {/* Same pill styling as NavBar's Sign In button */}
+        
         <Link
-          to={oppositeLink.to}
-          className="rounded-full px-6 py-2.5 text-sm font-roboto font-bold uppercase text-white transition-colors"
-          style={{ backgroundColor: "#081435" }}
+          to={action.to}
+          aria-label={action.label}
+          className={`inline-flex flex-shrink-0 items-center justify-center gap-2.5 rounded-full bg-navy font-jakarta text-[13px] font-bold uppercase text-white transition-colors hover:bg-navy/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal sm:h-auto sm:w-auto sm:px-7 sm:py-3.5 sm:text-[14px] ${
+            isBackHome ? "h-10 w-10" : "h-10 px-5"
+          }`}
         >
-          {oppositeLink.label}
+          {isBackHome && (
+            <ArrowLeft size={18} strokeWidth={2.5} aria-hidden="true" />
+          )}
+          <span className={isBackHome ? "sr-only sm:not-sr-only" : ""}>
+            {action.label}
+          </span>
+          {!isBackHome && (
+            <ArrowRight
+              size={18}
+              strokeWidth={2.5}
+              aria-hidden="true"
+              className="hidden sm:block"
+            />
+          )}
         </Link>
       </div>
     </nav>

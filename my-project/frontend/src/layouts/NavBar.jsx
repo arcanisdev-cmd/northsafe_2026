@@ -1,8 +1,12 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ArrowRight } from "lucide-react";
 import logo from "../assets/logo.png";
+import { useLoading } from "../components/LoadingScreen";
+
+// Set to 2000 to preview the loading screen locally (it adds a fake 2s wait
+// on the Sign In click). Set back to 0 when you're done.
+const PREVIEW_DELAY_MS = 0;
 
 const navLinks = [
   { label: "Home", id: "home" },
@@ -14,11 +18,38 @@ const navLinks = [
 
 function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { withLoading } = useLoading();
 
   function handleHomeClick(e) {
     e.preventDefault();
     setIsMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Waits for the sign-in page's code to load, then navigates.
+  // On a fast connection this is instant and the loading screen never shows.
+  async function handleSignInClick(e) {
+    // Let ctrl/cmd/shift-click and middle-click behave like a normal link
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    setIsMenuOpen(false);
+
+    try {
+      await withLoading(
+        Promise.all([
+          import("../pages/SigninPage"),
+          PREVIEW_DELAY_MS
+            ? new Promise((resolve) => setTimeout(resolve, PREVIEW_DELAY_MS))
+            : null,
+        ]),
+        "Opening sign in…"
+      );
+    } catch {
+      // The code failed to load: navigate anyway and let the router handle it
+    }
+
+    navigate("/signin");
   }
 
   function renderLink(link, mobile = false) {
@@ -57,7 +88,11 @@ function NavBar() {
             ))}
           </ul>
 
-          <Link to="/signin" className={`${signInClass} flex-shrink-0 px-7 py-3.5 text-[14px]`}>
+          <Link
+            to="/signin"
+            onClick={handleSignInClick}
+            className={`${signInClass} flex-shrink-0 px-7 py-3.5 text-[14px]`}
+          >
             SIGN IN
             <ArrowRight size={18} strokeWidth={2.5} />
           </Link>
@@ -87,7 +122,7 @@ function NavBar() {
 
           <Link
             to="/signin"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={handleSignInClick}
             className={`${signInClass} mt-4 w-full py-3.5 text-sm`}
           >
             SIGN IN
